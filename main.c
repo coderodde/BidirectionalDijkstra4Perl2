@@ -1,4 +1,6 @@
+#include "algorithm.h"
 #include "graph.h"
+#include "list.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -59,6 +61,9 @@ Graph* buildGraph() {
     size_t id1;
     size_t id2;
     double weight;
+    size_t source_vertex_id;
+    size_t target_vertex_id;
+    list* path;
 
     initGraph(p_graph);
 
@@ -70,7 +75,23 @@ Graph* buildGraph() {
         id2 = rand() % NODES;
         weight = randfrom(0.0, 10.0);
         addEdge(p_graph, id1, id2, weight);
+
+        if (edge == 0) {
+            source_vertex_id = id1;
+        }
+        else if (edge == NODES / 2) {
+            target_vertex_id = id2;
+        }
     }
+
+    int result_status = 0;
+
+    path = find_shortest_path(p_graph,
+                              source_vertex_id,
+                              target_vertex_id,
+                              &result_status);
+
+    printf("%d\n", result_status);
 
     return p_graph;
 }

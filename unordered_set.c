@@ -9,11 +9,11 @@ typedef struct unordered_set_entry {
     struct unordered_set_entry* next;
 } unordered_set_entry;
 
-struct unordered_set {
+typedef struct unordered_set {
     unordered_set_entry** table;
     unordered_set_entry* head;
     unordered_set_entry* tail;
-    size_t(*hash_function)(void*);
+    size_t              (*hash_function)  (void*);
     bool                (*equals_function)(void*, void*);
     size_t                mod_count;
     size_t                table_capacity;
@@ -21,16 +21,16 @@ struct unordered_set {
     size_t                mask;
     size_t                max_allowed_size;
     float                 load_factor;
-};
+} unordered_set;
 
-struct unordered_set_iterator {
+typedef struct unordered_set_iterator {
     unordered_set* map;
     unordered_set_entry* next_entry;
     size_t               iterated_count;
     size_t               expected_mod_count;
-};
+} unordered_set_iterator;
 
-static unordered_set_entry* unordered_set_entry_t_alloc(void* key)
+static unordered_set_entry* unordered_set_entry_alloc(void* key)
 {
     unordered_set_entry* entry = malloc(sizeof(*entry));
 
@@ -87,7 +87,7 @@ static size_t fix_initial_capacity(size_t initial_capacity)
     return ret;
 }
 
-unordered_set* unordered_set_t_alloc(size_t initial_capacity,
+unordered_set* unordered_set_alloc(size_t initial_capacity,
     float load_factor,
     size_t(*hash_function)(void*),
     bool (*equals_function)(void*, void*))
@@ -163,7 +163,7 @@ static void ensure_capacity(unordered_set* set)
     set->max_allowed_size = (size_t)(new_capacity * set->load_factor);
 }
 
-bool unordered_set_t_add(unordered_set* set, void* key)
+bool unordered_set_add(unordered_set* set, void* key)
 {
     size_t index;
     size_t hash_value;
@@ -189,7 +189,7 @@ bool unordered_set_t_add(unordered_set* set, void* key)
 
     /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & set->mask;
-    entry = unordered_set_entry_t_alloc(key);
+    entry = unordered_set_entry_alloc(key);
     entry->chain_next = set->table[index];
     set->table[index] = entry;
 
@@ -212,7 +212,7 @@ bool unordered_set_t_add(unordered_set* set, void* key)
     return true;
 }
 
-bool unordered_set_t_contains(unordered_set* set, void* key)
+bool unordered_set_contains(unordered_set* set, void* key)
 {
     size_t index;
     unordered_set_entry* p_entry;
@@ -235,7 +235,7 @@ bool unordered_set_t_contains(unordered_set* set, void* key)
     return false;
 }
 
-bool unordered_set_t_remove(unordered_set* set, void* key)
+bool unordered_set_remove(unordered_set* set, void* key)
 {
     size_t index;
     unordered_set_entry* prev_entry;
@@ -297,7 +297,7 @@ bool unordered_set_t_remove(unordered_set* set, void* key)
     return false;
 }
 
-void unordered_set_t_clear(unordered_set* set)
+void unordered_set_clear(unordered_set* set)
 {
     unordered_set_entry* entry;
     unordered_set_entry* next_entry;
@@ -325,12 +325,12 @@ void unordered_set_t_clear(unordered_set* set)
     set->tail = NULL;
 }
 
-size_t unordered_set_t_size(unordered_set* set)
+size_t unordered_set_size(unordered_set* set)
 {
     return set ? set->size : 0;
 }
 
-bool unordered_set_t_is_healthy(unordered_set* set)
+bool unordered_set_is_healthy(unordered_set* set)
 {
     size_t counter;
     unordered_set_entry* entry;
@@ -356,20 +356,20 @@ bool unordered_set_t_is_healthy(unordered_set* set)
     return counter == set->size;
 }
 
-void unordered_set_t_free(unordered_set* set)
+void unordered_set_free(unordered_set* set)
 {
     if (!set)
     {
         return;
     }
 
-    unordered_set_t_clear(set);
+    unordered_set_clear(set);
     free(set->table);
     free(set);
 }
 
 unordered_set_iterator*
-unordered_set_iterator_t_alloc(unordered_set* set)
+unordered_set_iterator_alloc(unordered_set* set)
 {
     unordered_set_iterator* iterator;
 
@@ -393,14 +393,14 @@ unordered_set_iterator_t_alloc(unordered_set* set)
     return iterator;
 }
 
-size_t unordered_set_iterator_t_has_next(unordered_set_iterator* iterator)
+size_t unordered_set_iterator_has_next(unordered_set_iterator* iterator)
 {
     if (!iterator)
     {
         return 0;
     }
 
-    if (unordered_set_iterator_t_is_disturbed(iterator))
+    if (unordered_set_iterator_is_disturbed(iterator))
     {
         return 0;
     }
@@ -408,7 +408,7 @@ size_t unordered_set_iterator_t_has_next(unordered_set_iterator* iterator)
     return iterator->map->size - iterator->iterated_count;
 }
 
-bool unordered_set_iterator_t_next(unordered_set_iterator* iterator,
+bool unordered_set_iterator_next(unordered_set_iterator* iterator,
     void** key_pointer)
 {
     if (!iterator)
@@ -421,7 +421,7 @@ bool unordered_set_iterator_t_next(unordered_set_iterator* iterator,
         return false;
     }
 
-    if (unordered_set_iterator_t_is_disturbed(iterator))
+    if (unordered_set_iterator_is_disturbed(iterator))
     {
         return false;
     }
@@ -434,7 +434,7 @@ bool unordered_set_iterator_t_next(unordered_set_iterator* iterator,
 }
 
 bool
-unordered_set_iterator_t_is_disturbed(unordered_set_iterator* iterator)
+unordered_set_iterator_is_disturbed(unordered_set_iterator* iterator)
 {
     if (!iterator)
     {
@@ -444,7 +444,7 @@ unordered_set_iterator_t_is_disturbed(unordered_set_iterator* iterator)
     return iterator->expected_mod_count != iterator->map->mod_count;
 }
 
-void unordered_set_iterator_t_free(unordered_set_iterator* iterator)
+void unordered_set_iterator_free(unordered_set_iterator* iterator)
 {
     if (!iterator)
     {

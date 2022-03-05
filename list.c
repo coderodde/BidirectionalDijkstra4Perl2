@@ -2,20 +2,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-struct list {
-    void** storage;
-    size_t size;
-    size_t capacity;
-    size_t head;
-    size_t mask;
-};
-
 static const size_t MINIMUM_CAPACITY = 16;
 
-static size_t max(size_t a, size_t b)
-{
-    return a < b ? b : a;
-}
 
 static size_t fix_initial_capacity(size_t initial_capacity)
 {

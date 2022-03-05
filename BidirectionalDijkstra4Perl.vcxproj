@@ -153,7 +153,7 @@
     <ClCompile Include="unordered_map.c" />
     <ClCompile Include="unordered_set.c" />
     <ClCompile Include="algorithm.c" />
-    <ClCompile Include="list    .c" />
+    <ClCompile Include="list.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

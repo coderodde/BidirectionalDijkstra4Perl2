@@ -8,7 +8,13 @@
 extern "C" {
 #endif
 
-    typedef struct list list;
+    typedef struct list {
+        void** storage;
+        size_t size;
+        size_t capacity;
+        size_t head;
+        size_t mask;
+    } list;
 
     /***************************************************************************
     * Allocates the new, empty list with initial capacity.                     *

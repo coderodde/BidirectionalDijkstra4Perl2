@@ -26,7 +26,19 @@ static int equals_function(void* node_1_id, void* node_2_id) {
 }
 
 static int priority_compare_function(void* a, void* b) {
-    return ((double) a) - ((double) b);
+    double* p_a = (double*) a;
+    double* p_b = (double*) b;
+
+    double num_a = *p_a;
+    double num_b = *p_b;
+
+    if (num_a < num_b) {
+        return -1;
+    } else if (num_a > num_b) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 list* find_shortest_path(Graph* p_graph,
@@ -96,10 +108,10 @@ list* find_shortest_path(Graph* p_graph,
     }
 
     closed_forward = 
-        unordered_set_t_alloc(INITIAL_MAP_CAPACITY,
-                              LOAD_FACTOR,
-                              hash_function,
-                              equals_function);
+        unordered_set_alloc(INITIAL_MAP_CAPACITY,
+                            LOAD_FACTOR,
+                            hash_function,
+                            equals_function);
 
     if (!closed_forward) {
         fibonacci_heap_free(open_forward);
@@ -109,15 +121,15 @@ list* find_shortest_path(Graph* p_graph,
     }
 
     closed_backward = 
-        unordered_set_t_alloc(INITIAL_MAP_CAPACITY,
-                              LOAD_FACTOR,
-                              hash_function,
-                              equals_function);
+        unordered_set_alloc(INITIAL_MAP_CAPACITY,
+                            LOAD_FACTOR,
+                            hash_function,
+                            equals_function);
 
     if (!closed_backward) {
         fibonacci_heap_free(open_forward);
         fibonacci_heap_free(open_backward);
-        unordered_set_t_free(closed_forward);
+        unordered_set_free(closed_forward);
         *p_return_status = RETURN_STATUS_NO_MEMORY;
         return NULL;
     }
@@ -131,8 +143,8 @@ list* find_shortest_path(Graph* p_graph,
     if (!distance_forward) {
         fibonacci_heap_free(open_forward);
         fibonacci_heap_free(open_backward);
-        unordered_set_t_free(closed_forward);
-        unordered_set_t_free(closed_backward);
+        unordered_set_free(closed_forward);
+        unordered_set_free(closed_backward);
         *p_return_status = RETURN_STATUS_NO_MEMORY;
         return NULL;
     }
@@ -146,8 +158,8 @@ list* find_shortest_path(Graph* p_graph,
     if (!distance_backward) {
         fibonacci_heap_free(open_forward);
         fibonacci_heap_free(open_backward);
-        unordered_set_t_free(closed_forward);
-        unordered_set_t_free(closed_backward);
+        unordered_set_free(closed_forward);
+        unordered_set_free(closed_backward);
         unordered_map_free(distance_forward);
         *p_return_status = RETURN_STATUS_NO_MEMORY;
         return NULL;
@@ -162,8 +174,8 @@ list* find_shortest_path(Graph* p_graph,
     if (!parent_forward) {
         fibonacci_heap_free(open_forward);
         fibonacci_heap_free(open_backward);
-        unordered_set_t_free(closed_forward);
-        unordered_set_t_free(closed_backward);
+        unordered_set_free(closed_forward);
+        unordered_set_free(closed_backward);
         unordered_map_free(distance_forward);
         unordered_map_free(distance_backward);
         *p_return_status = RETURN_STATUS_NO_MEMORY;
@@ -179,12 +191,24 @@ list* find_shortest_path(Graph* p_graph,
     if (!parent_backward) {
         fibonacci_heap_free(open_forward);
         fibonacci_heap_free(open_backward);
-        unordered_set_t_free(closed_forward);
-        unordered_set_t_free(closed_backward);
+        unordered_set_free(closed_forward);
+        unordered_set_free(closed_backward);
         unordered_map_free(distance_forward);
         unordered_map_free(distance_backward);
         unordered_map_free(parent_forward);
         *p_return_status = RETURN_STATUS_NO_MEMORY;
         return NULL;
     }
+
+
+    /* Clean the state: */
+    fibonacci_heap_free(open_forward);
+    fibonacci_heap_free(open_backward);
+    unordered_set_free(closed_forward);
+    unordered_set_free(closed_backward);
+    unordered_map_free(distance_forward);
+    unordered_map_free(distance_backward);
+    unordered_map_free(parent_forward);
+    unordered_map_free(parent_backward);
+    return NULL;
 }

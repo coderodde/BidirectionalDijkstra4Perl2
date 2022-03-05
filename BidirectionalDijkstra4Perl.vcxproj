@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="fibonacci_heap.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="unordered_map.h" />
     <ClInclude Include="unordered_set.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="list.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="fibonacci_heap.c" />
     <ClCompile Include="graph.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="unordered_map.c" />

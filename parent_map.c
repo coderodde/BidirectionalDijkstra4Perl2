@@ -2,18 +2,18 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct distance_map_entry {
+typedef struct parent_map_entry {
     size_t vertex_id;
-    double distance;
-    struct distance_map_entry* chain_next;
-    struct distance_map_entry* prev;
-    struct distance_map_entry* next;
-} distance_map_entry;
+    size_t predecessor_vertex_id;
+    struct parent_map_entry* chain_next;
+    struct parent_map_entry* prev;
+    struct parent_map_entry* next;
+} parent_map_entry;
 
-typedef struct distance_map {
-    distance_map_entry** table;
-    distance_map_entry* head;
-    distance_map_entry* tail;
+typedef struct parent_map {
+    parent_map_entry** table;
+    parent_map_entry* head;
+    parent_map_entry* tail;
     size_t(*hash_function)(void*);
     bool                (*equals_function)(void*, void*);
     size_t                mod_count;
@@ -22,13 +22,13 @@ typedef struct distance_map {
     size_t                max_allowed_size;
     size_t                mask;
     float                 load_factor;
-} distance_map;
+} parent_map;
 
-static distance_map_entry* 
-distance_map_entry_alloc(size_t vertex_id,
-                         double distance)
+static parent_map_entry*
+parent_map_entry_alloc(size_t vertex_id,
+                       size_t predecessor_vertex_id)
 {
-    distance_map_entry* entry = malloc(sizeof(*entry));
+    parent_map_entry* entry = malloc(sizeof(*entry));
 
     if (!entry)
     {
@@ -36,7 +36,7 @@ distance_map_entry_alloc(size_t vertex_id,
     }
 
     entry->vertex_id = vertex_id;
-    entry->distance = distance;
+    entry->predecessor_vertex_id = predecessor_vertex_id;
     entry->chain_next = NULL;
     entry->next = NULL;
     entry->prev = NULL;
@@ -84,13 +84,13 @@ static size_t fix_initial_capacity(size_t initial_capacity)
     return ret;
 }
 
-distance_map* distance_map_alloc(
+parent_map* parent_map_alloc(
     size_t initial_capacity,
     float load_factor,
     size_t(*hash_function)(void*),
     bool (*equals_function)(void*, void*))
 {
-    distance_map* map;
+    parent_map* map;
 
     if (!hash_function || !equals_function)
     {
@@ -113,8 +113,7 @@ distance_map* distance_map_alloc(
     map->mod_count = 0;
     map->head = NULL;
     map->tail = NULL;
-    map->table = calloc(initial_capacity,
-                        sizeof(distance_map_entry*));
+    map->table = calloc(initial_capacity, sizeof(parent_map_entry*));
 
     map->hash_function = hash_function;
     map->equals_function = equals_function;
@@ -124,13 +123,13 @@ distance_map* distance_map_alloc(
     return map;
 }
 
-static void ensure_capacity(distance_map* map)
+static void ensure_capacity(parent_map* map)
 {
     size_t new_capacity;
     size_t new_mask;
     size_t index;
-    distance_map_entry* entry;
-    distance_map_entry** new_table;
+    parent_map_entry* entry;
+    parent_map_entry** new_table;
 
     if (map->size < map->max_allowed_size)
     {
@@ -139,7 +138,7 @@ static void ensure_capacity(distance_map* map)
 
     new_capacity = 2 * map->table_capacity;
     new_mask = new_capacity - 1;
-    new_table = calloc(new_capacity, sizeof(distance_map_entry*));
+    new_table = calloc(new_capacity, sizeof(parent_map_entry*));
 
     if (!new_table)
     {
@@ -162,12 +161,15 @@ static void ensure_capacity(distance_map* map)
     map->max_allowed_size = (size_t)(new_capacity * map->load_factor);
 }
 
-bool unordered_map_put(distance_map* map, size_t vertex_id, double distance)
+bool parent_map_put(
+    parent_map* map, 
+    size_t vertex_id, 
+    size_t predecessor_vertex_id)
 {
     size_t index;
     size_t hash_value;
     void* old_value;
-    distance_map_entry* entry;
+    parent_map_entry* entry;
 
     if (!map)
     {
@@ -181,7 +183,7 @@ bool unordered_map_put(distance_map* map, size_t vertex_id, double distance)
     {
         if (map->equals_function(entry->vertex_id, vertex_id))
         {
-            entry->distance = distance;
+            entry->predecessor_vertex_id = predecessor_vertex_id;
             return true;
         }
     }
@@ -190,7 +192,7 @@ bool unordered_map_put(distance_map* map, size_t vertex_id, double distance)
 
     /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & map->mask;
-    entry = distance_map_entry_alloc(vertex_id, distance);
+    entry = parent_map_entry_alloc(vertex_id, predecessor_vertex_id);
 
     if (!entry) {
         return false;
@@ -219,33 +221,10 @@ bool unordered_map_put(distance_map* map, size_t vertex_id, double distance)
     return true;
 }
 
-bool distance_map_contains_key(distance_map* map, size_t vertex_id)
+size_t parent_map_get(parent_map* map, size_t vertex_id)
 {
     size_t index;
-    distance_map_entry* entry;
-
-    if (!map)
-    {
-        return false;
-    }
-
-    index = map->hash_function(vertex_id) & map->mask;
-
-    for (entry = map->table[index]; entry; entry = entry->chain_next)
-    {
-        if (map->equals_function(vertex_id, entry->vertex_id))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-double distance_map_get(distance_map* map, size_t vertex_id)
-{
-    size_t index;
-    distance_map_entry* p_entry;
+    parent_map_entry* p_entry;
 
     if (!map)
     {
@@ -258,7 +237,7 @@ double distance_map_get(distance_map* map, size_t vertex_id)
     {
         if (map->equals_function(vertex_id, p_entry->vertex_id))
         {
-            return p_entry->distance;
+            return p_entry->predecessor_vertex_id;
         }
     }
 
@@ -266,10 +245,10 @@ double distance_map_get(distance_map* map, size_t vertex_id)
     return 0.0; /* Compiler, shut up! */
 }
 
-static void unordered_map_clear(distance_map* map)
+static void parent_map_clear(parent_map* map)
 {
-    distance_map_entry* entry;
-    distance_map_entry* next_entry;
+    parent_map_entry* entry;
+    parent_map_entry* next_entry;
     size_t index;
 
     if (!map)
@@ -294,14 +273,14 @@ static void unordered_map_clear(distance_map* map)
     map->tail = NULL;
 }
 
-void unordered_map_free(distance_map* map)
+void parent_map_free(parent_map* map)
 {
     if (!map)
     {
         return;
     }
 
-    distance_map_clear(map);
+    parent_map_clear(map);
     free(map->table);
     free(map);
 }

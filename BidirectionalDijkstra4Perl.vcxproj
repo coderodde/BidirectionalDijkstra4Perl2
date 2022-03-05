@@ -139,17 +139,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="distance_map.h" />
     <ClInclude Include="fibonacci_heap.h" />
     <ClInclude Include="graph.h" />
+    <ClInclude Include="parent_map.h" />
     <ClInclude Include="unordered_map.h" />
     <ClInclude Include="unordered_set.h" />
     <ClInclude Include="algorithm.h" />
     <ClInclude Include="list.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="distance_map.c" />
     <ClCompile Include="fibonacci_heap.c" />
     <ClCompile Include="graph.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="parent_map.c" />
     <ClCompile Include="unordered_map.c" />
     <ClCompile Include="unordered_set.c" />
     <ClCompile Include="algorithm.c" />

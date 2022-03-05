@@ -33,6 +33,12 @@
     <ClInclude Include="fibonacci_heap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="distance_map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parent_map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="unordered_map.c">
@@ -54,6 +60,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fibonacci_heap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="distance_map.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parent_map.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

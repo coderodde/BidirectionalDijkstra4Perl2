@@ -1,5 +1,5 @@
-#ifndef DOUBLE_UNORDERED_MAP_H
-#define	DOUBLE_UNORDERED_MAP_H
+#ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H
+#define	COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -9,7 +9,6 @@ extern "C" {
 #endif
 
     typedef struct distance_map distance_map;
-    typedef struct distnace_map_iterator distance_map_iterator;
 
     /***************************************************************************
     * Allocates a new, empty map with given hash function and given equality   *
@@ -42,10 +41,10 @@ extern "C" {
     /*************************************************************************
     Clears entirely the distance map.                    
     *************************************************************************/
-    void unordered_map_free(distance_map* map
+    void unordered_map_free(distance_map* map);
 
 #ifdef	__cplusplus
 }
 #endif
 
-#endif	/* UNORDERED_MAP_H */
+#endif	/* COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H */

@@ -1,32 +1,31 @@
-#include "distance_map.h"
+#include "graph_vertex_map.h"
 #include "util.h"
-#include <stdbool.h>
-#include <stdlib.h>
 
-typedef struct distance_map_entry {
-    size_t vertex_id;
-    double distance;
-    distance_map_entry* chain_next;
-    distance_map_entry* prev;
-    distance_map_entry* next;
-} distance_map_entry;
+typedef struct graph_vertex_map_entry {
+    size_t                  vertex_id;
+    GraphVertex*            vertex;
+    graph_vertex_map_entry* chain_next;
+    graph_vertex_map_entry* prev;
+    graph_vertex_map_entry* next;
+} graph_vertex_map_entry;
 
-typedef struct distance_map {
-    distance_map_entry** table;
-    distance_map_entry* head;
-    distance_map_entry* tail;
-    size_t              table_capacity;
-    size_t              size;
-    size_t              max_allowed_size;
-    size_t              mask;
-    float               load_factor;
-} distance_map;
+typedef struct graph_vertex_map {
+    graph_vertex_map_entry** table;
+    graph_vertex_map_entry*  head;
+    graph_vertex_map_entry*  tail;
+    size_t                   table_capacity;
+    size_t                   size;
+    size_t                   max_allowed_size;
+    size_t                   mask;
+    float                    load_factor;
+} graph_vertex_map;
 
-static distance_map_entry* 
-distance_map_entry_alloc(size_t vertex_id,
-                         double distance)
+
+static graph_vertex_map_entry*
+graph_vertex_map_entry_alloc(size_t vertex_id,
+                             GraphVertex* vertex)
 {
-    distance_map_entry* entry = malloc(sizeof(*entry));
+    graph_vertex_map_entry* entry = malloc(sizeof(*entry));
 
     if (!entry)
     {
@@ -34,7 +33,7 @@ distance_map_entry_alloc(size_t vertex_id,
     }
 
     entry->vertex_id = vertex_id;
-    entry->distance = distance;
+    entry->vertex = vertex;
     entry->chain_next = NULL;
     entry->next = NULL;
     entry->prev = NULL;
@@ -82,10 +81,10 @@ static size_t fix_initial_capacity(size_t initial_capacity)
     return ret;
 }
 
-distance_map* distance_map_alloc(size_t initial_capacity,
-                                 float load_factor)
+graph_vertex_map* graph_vertex_map_alloc(size_t initial_capacity,
+                                         float load_factor)
 {
-    distance_map* map = malloc(sizeof(*map));
+    graph_vertex_map* map = malloc(sizeof(*map));
 
     if (!map)
     {
@@ -101,7 +100,7 @@ distance_map* distance_map_alloc(size_t initial_capacity,
     map->head = NULL;
     map->tail = NULL;
     map->table = calloc(initial_capacity,
-                        sizeof(distance_map_entry*));
+                        sizeof(graph_vertex_map_entry*));
 
     map->mask = initial_capacity - 1;
     map->max_allowed_size = (size_t)(initial_capacity * load_factor);
@@ -109,13 +108,13 @@ distance_map* distance_map_alloc(size_t initial_capacity,
     return map;
 }
 
-static int ensure_capacity(distance_map* map)
+static int ensure_capacity(graph_vertex_map* map)
 {
     size_t new_capacity;
     size_t new_mask;
     size_t index;
-    distance_map_entry* entry;
-    distance_map_entry** new_table;
+    graph_vertex_map_entry* entry;
+    graph_vertex_map_entry** new_table;
 
     if (map->size < map->max_allowed_size)
     {
@@ -124,7 +123,8 @@ static int ensure_capacity(distance_map* map)
 
     new_capacity = 2 * map->table_capacity;
     new_mask = new_capacity - 1;
-    new_table = calloc(new_capacity, sizeof(distance_map_entry*));
+    new_table = calloc(new_capacity, 
+                       sizeof(graph_vertex_map_entry*));
 
     if (!new_table)
     {
@@ -149,13 +149,13 @@ static int ensure_capacity(distance_map* map)
     return RETURN_STATUS_OK;
 }
 
-int distance_map_put(distance_map* map, 
-                     size_t vertex_id, 
-                     double distance)
+int graph_vertex_map_put(graph_vertex_map* map,
+                         size_t vertex_id,
+                         GraphVertex* vertex)
 {
     size_t index;
     size_t hash_value;
-    distance_map_entry* entry;
+    graph_vertex_map_entry* entry;
 
     if (!map)
     {
@@ -169,7 +169,7 @@ int distance_map_put(distance_map* map,
     {
         if (entry->vertex_id == vertex_id)
         {
-            entry->distance = distance;
+            entry->vertex = vertex;
             return RETURN_STATUS_OK;
         }
     }
@@ -178,9 +178,10 @@ int distance_map_put(distance_map* map,
         return RETURN_STATUS_NO_MEMORY;
     }
 
-    /* Recompute the index since it is possibly changed by 'ensure_capacity' */
+    /* Recompute the index since it is possibly changed by
+       'ensure_capacity' */
     index = hash_value & map->mask;
-    entry = distance_map_entry_alloc(vertex_id, distance);
+    entry = graph_vertex_map_entry_alloc(vertex_id, vertex);
 
     if (!entry) {
         return RETURN_STATUS_NO_MEMORY;
@@ -206,14 +207,14 @@ int distance_map_put(distance_map* map,
     return RETURN_STATUS_OK;
 }
 
-bool distance_map_contains_key(distance_map* map, size_t vertex_id)
+int graph_vertex_map_contains_key(graph_vertex_map* map, size_t vertex_id)
 {
     size_t index;
-    distance_map_entry* entry;
+    graph_vertex_map_entry* entry;
 
     if (!map)
     {
-        return false;
+        return 0;
     }
 
     index = vertex_id & map->mask;
@@ -222,17 +223,18 @@ bool distance_map_contains_key(distance_map* map, size_t vertex_id)
     {
         if (vertex_id == entry->vertex_id)
         {
-            return true;
+            return 1;
         }
     }
 
-    return false;
+    return 0;
 }
 
-double distance_map_get(distance_map* map, size_t vertex_id)
+GraphVertex* graph_vertex_map_get(graph_vertex_map* map, 
+                                  size_t vertex_id)
 {
     size_t index;
-    distance_map_entry* p_entry;
+    graph_vertex_map_entry* p_entry;
 
     if (!map)
     {
@@ -245,18 +247,79 @@ double distance_map_get(distance_map* map, size_t vertex_id)
     {
         if (vertex_id == p_entry->vertex_id)
         {
-            return p_entry->distance;
+            return p_entry->vertex;
         }
     }
 
-    abort();
-    return 0.0; /* Compiler, shut up! */
+    return NULL;
 }
 
-static void distance_map_clear(distance_map* map)
+int graph_vertex_map_remove(graph_vertex_map* map, 
+                            size_t vertex_id)
 {
-    distance_map_entry* entry;
-    distance_map_entry* next_entry;
+    size_t index;
+    graph_vertex_map_entry* prev_entry;
+    graph_vertex_map_entry* current_entry;
+
+    if (!map)
+    {
+        return NULL;
+    }
+
+    index = vertex_id & map->mask;
+
+    prev_entry = NULL;
+
+    for (current_entry = map->table[index];
+        current_entry;
+        current_entry = current_entry->chain_next)
+    {
+        if (vertex_id, current_entry->vertex_id)
+        {
+            if (prev_entry)
+            {
+                /* Omit the 'p_current_entry' in the collision chain. */
+                prev_entry->chain_next = current_entry->chain_next;
+            }
+            else
+            {
+                map->table[index] = current_entry->chain_next;
+            }
+
+            /* Unlink from the global iteration chain. */
+            if (current_entry->prev)
+            {
+                current_entry->prev->next = current_entry->next;
+            }
+            else
+            {
+                map->head = current_entry->next;
+            }
+
+            if (current_entry->next)
+            {
+                current_entry->next->prev = current_entry->prev;
+            }
+            else
+            {
+                map->tail = current_entry->prev;
+            }
+
+            map->size--;
+            free(current_entry);
+            return 1;
+        }
+
+        prev_entry = current_entry;
+    }
+
+    return 0;
+}
+
+static void graph_vertex_map_clear(graph_vertex_map* map)
+{
+    graph_vertex_map_entry* entry;
+    graph_vertex_map_entry* next_entry;
     size_t index;
 
     if (!map)
@@ -280,14 +343,14 @@ static void distance_map_clear(distance_map* map)
     map->tail = NULL;
 }
 
-void distance_map_free(distance_map* map)
+void graph_vertex_map_free(graph_vertex_map* map)
 {
     if (!map)
     {
         return;
     }
 
-    distance_map_clear(map);
+    graph_vertex_map_clear(map);
     free(map->table);
     free(map);
 }

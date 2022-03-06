@@ -1,6 +1,7 @@
-#ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H
-#define	COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H
+#ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_GRAPH_VERTEX_MAP_H
+#define	COM_GITHUB_CODERODDE_BIDIR_SEARCH_GRAPH_VERTEX_MAP_H
 
+#include "graph.h"
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -8,38 +9,44 @@
 extern "C" {
 #endif
 
-    typedef struct distance_map distance_map;
-    typedef struct distance_map_entry distance_map_entry;
+    typedef struct graph_vertex_map graph_vertex_map;
+    typedef struct graph_vertex_map_entry graph_vertex_map_entry;
 
     /***************************************************************************
     * Allocates a new, empty map with given hash function and given equality   *
     * testing function.                                                        *
     ***************************************************************************/
-    distance_map* distance_map_alloc(size_t initial_capacity, 
-                                     float load_factor);
+    graph_vertex_map* graph_vertex_map_alloc(
+        size_t initial_capacity,
+        float load_factor);
 
     /***************************************************************************
     * If p_map does not contain the key p_key, inserts it in the map,          *
     * associates value with it and return NULL. Otherwise updates the value    *
     * and returns the old value.                                               *
     ***************************************************************************/
-    int distance_map_put(distance_map* map, void* key, double value);
+    int graph_vertex_map_put(graph_vertex_map* map,
+                             size_t vertex_id, 
+                             GraphVertex*);
 
     /***************************************************************************
     * Returns a positive value if p_key is mapped to some value in this map.   *
     ***************************************************************************/
-    bool distance_map_contains_key(distance_map* map, void* key);
+    int graph_vertex_map_contains_key(graph_vertex_map* map, size_t vertex_id);
 
     /***************************************************************************
     * Returns the value associated with the p_key, or NULL if p_key is not     *
     * mapped in the map.                                                       *
     ***************************************************************************/
-    double distance_map_get(distance_map* map, void* key);
+    GraphVertex* graph_vertex_map_get(graph_vertex_map * map, 
+                                      size_t vertex_id);
+
+    int graph_vertex_map_remove(graph_vertex_map* map, size_t vertex_id);
 
     /*************************************************************************
-    Clears entirely the distance map.                    
+    Clears entirely the distance map.
     *************************************************************************/
-    void unordered_map_free(distance_map* map);
+    void graph_vertex_map_free(graph_vertex_map* map);
 
 #ifdef	__cplusplus
 }

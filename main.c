@@ -4,10 +4,15 @@
 #include "vertex_set.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
+static size_t milliseconds()
+{
+    return (size_t)(clock() / (CLOCKS_PER_SEC / 1000));
+}
 
-static const size_t NODES = 1000;
-static const size_t EDGES = 6000;
+static const size_t NODES = 100 * 1000;
+static const size_t EDGES = 500 * 1000;
 
 static void testRemoveNode()
 {
@@ -65,11 +70,15 @@ Graph* buildGraph() {
     double weight;
     size_t source_vertex_id;
     size_t target_vertex_id;
+    size_t milliseconds_a;
+    size_t milliseconds_b;
     list* path;
 
     initGraph(p_graph);
 
     srand((unsigned) time(NULL));
+
+    milliseconds_a = milliseconds();
 
     for (size_t edge = 0; edge < EDGES; ++edge)
     {
@@ -85,6 +94,10 @@ Graph* buildGraph() {
             target_vertex_id = id2;
         }
     }
+
+    milliseconds_b = milliseconds();
+    printf("Built the graph in %zu milliseconds.\n", 
+           (milliseconds_b - milliseconds_a));
 
     int result_status = 0;
 

@@ -5,39 +5,324 @@
 #include <stdlib.h>
 #include <string.h>
 
+const int RETURN_STATUS_OK                      = 0;
+const int RETURN_STATUS_NO_HEAP                 = 1;
+const int RETURN_STATUS_ADDING_DUPLICATE_VERTEX = 2;
+const int RETURN_STATUS_NO_MEMORY               = 3;
+
 static const double LOG_PHI = 0.438;
 static const size_t DEFAULT_NODE_ARRAY_CAPACITY = 8;
 
-typedef struct heap_node {
-    void* element;
-    void* priority;
-    struct heap_node* parent;
-    struct heap_node* left;
-    struct heap_node* right;
-    struct heap_node* child;
-    size_t            degree;
-    bool              marked;
-} heap_node;
+/***************************************************
+Map from vertex IDs to Fibonacci heap nodes follows:
+***************************************************/
+
+typedef struct fibonacci_heap_node {
+    size_t               vertex_id;
+    double               priority;
+    fibonacci_heap_node* parent;
+    fibonacci_heap_node* left;
+    fibonacci_heap_node* right;
+    fibonacci_heap_node* child;
+    size_t               degree;
+    bool                 marked;
+} fibonacci_heap_node;
+
+typedef struct heap_node_map_entry {
+    size_t                      vertex_id;
+    fibonacci_heap_node*        heap_node;
+    struct heap_node_map_entry* chain_next;
+    struct heap_node_map_entry* prev;
+    struct heap_node_map_entry* next;
+} heap_node_map_entry;
+
+typedef struct heap_node_map {
+    heap_node_map_entry** table;
+    heap_node_map_entry*  head;
+    heap_node_map_entry*  tail;
+    size_t                table_capacity;
+    size_t                size;
+    size_t                max_allowed_size;
+    size_t                mask;
+    float                 load_factor;
+} heap_node_map;
+
+typedef struct fibonacci_heap {
+    heap_node_map*        node_map;
+    fibonacci_heap_node*  minimum_node;
+    fibonacci_heap_node** node_array;
+    size_t                node_array_capacity;
+} fibonacci_heap;
+
+static heap_node_map_entry*
+heap_node_map_entry_alloc(size_t vertex_id,
+                          fibonacci_heap_node* heap_node)
+{
+    heap_node_map_entry* entry = malloc(sizeof(*entry));
+
+    if (!entry)
+    {
+        return NULL;
+    }
+
+    entry->vertex_id = vertex_id;
+    entry->heap_node = heap_node;
+    entry->chain_next = NULL;
+    entry->next = NULL;
+    entry->prev = NULL;
+
+    return entry;
+}
+
+static const float  MINIMUM_LOAD_FACTOR = 0.2f;
+static const size_t MINIMUM_INITIAL_CAPACITY = 16;
+
+static float maxf(float a, float b)
+{
+    return a < b ? b : a;
+}
+
+static int maxi(int a, int b)
+{
+    return a < b ? b : a;
+}
+
+/*******************************************************************************
+* Makes sure that the load factor is no less than a minimum threshold.         *
+*******************************************************************************/
+static float fix_load_factor(float load_factor)
+{
+    return maxf(load_factor, MINIMUM_LOAD_FACTOR);
+}
+
+/*******************************************************************************
+* Makes sure that the initial capacity is no less than a minimum allowed and   *
+* is a power of two.                                                           *
+*******************************************************************************/
+static size_t fix_initial_capacity(size_t initial_capacity)
+{
+    size_t ret;
+
+    initial_capacity = maxi(initial_capacity, MINIMUM_INITIAL_CAPACITY);
+    ret = 1;
+
+    while (ret < initial_capacity)
+    {
+        ret <<= 1;
+    }
+
+    return ret;
+}
+
+heap_node_map* heap_node_map_alloc(
+    size_t initial_capacity,
+    float load_factor)
+{
+    heap_node_map* map = malloc(sizeof(*map));
+
+    if (!map)
+    {
+        return NULL;
+    }
+
+    load_factor = fix_load_factor(load_factor);
+    initial_capacity = fix_initial_capacity(initial_capacity);
+
+    map->load_factor = load_factor;
+    map->table_capacity = initial_capacity;
+    map->size = 0;
+    map->head = NULL;
+    map->tail = NULL;
+    map->table = calloc(initial_capacity, sizeof(heap_node_map_entry*));
+
+    map->mask = initial_capacity - 1;
+    map->max_allowed_size = (size_t)(initial_capacity * load_factor);
+
+    return map;
+}
+
+static void ensure_capacity(heap_node_map* map)
+{
+    size_t new_capacity;
+    size_t new_mask;
+    size_t index;
+    heap_node_map_entry* entry;
+    heap_node_map_entry** new_table;
+
+    if (map->size < map->max_allowed_size)
+    {
+        return;
+    }
+
+    new_capacity = 2 * map->table_capacity;
+    new_mask = new_capacity - 1;
+    new_table = calloc(new_capacity, sizeof(heap_node_map_entry*));
+
+    if (!new_table)
+    {
+        return;
+    }
+
+    /* Rehash the entries. */
+    for (entry = map->head; entry; entry = entry->next)
+    {
+        index = entry->vertex_id & new_mask;
+        entry->chain_next = new_table[index];
+        new_table[index] = entry;
+    }
+
+    free(map->table);
+
+    map->table = new_table;
+    map->table_capacity = new_capacity;
+    map->mask = new_mask;
+    map->max_allowed_size = (size_t)(new_capacity * map->load_factor);
+}
+
+bool heap_node_map_put(
+    heap_node_map* map,
+    size_t vertex_id,
+    fibonacci_heap_node* heap_node)
+{
+    size_t index;
+    size_t hash_value;
+    void* old_value;
+    heap_node_map_entry* entry;
+
+    if (!map)
+    {
+        return false;
+    }
+
+    hash_value = vertex_id;
+    index = hash_value & map->mask;
+
+    for (entry = map->table[index]; entry; entry = entry->chain_next)
+    {
+        if (entry->vertex_id == vertex_id)
+        {
+            entry->heap_node = heap_node;
+            return true;
+        }
+    }
+    // todo : add mem check
+    ensure_capacity(map);
+
+    /* Recompute the index since it is possibly changed by 'ensure_capacity' */
+    index = hash_value & map->mask;
+    entry = heap_node_map_entry_alloc(vertex_id, heap_node);
+
+    if (!entry) {
+        return false;
+    }
+
+    entry->chain_next = map->table[index];
+    map->table[index] = entry;
+
+    /* Link the new entry to the tail of the list. */
+    if (!map->tail)
+    {
+        map->head = entry;
+        map->tail = entry;
+    }
+    else
+    {
+        map->tail->next = entry;
+        entry->prev = map->tail;
+        map->tail = entry;
+    }
+
+    map->size++;
+    return true;
+}
+
+fibonacci_heap_node* heap_node_map_get(heap_node_map* map, size_t vertex_id)
+{
+    size_t index;
+    heap_node_map_entry* p_entry;
+
+    if (!map)
+    {
+        abort();
+    }
+
+    index = vertex_id & map->mask;
+
+    for (p_entry = map->table[index]; p_entry; p_entry = p_entry->chain_next)
+    {
+        if (vertex_id == p_entry->vertex_id)
+        {
+            return p_entry->heap_node;
+        }
+    }
+
+    return NULL;
+}
+
+static void heap_node_map_clear(heap_node_map* map)
+{
+    heap_node_map_entry* entry;
+    heap_node_map_entry* next_entry;
+    size_t index;
+
+    if (!map)
+    {
+        return;
+    }
+
+    entry = map->head;
+
+    while (entry)
+    {
+        index = entry->vertex_id & map->mask;
+        next_entry = entry->next;
+        free(entry);
+        entry = next_entry;
+        map->table[index] = NULL;
+    }
+
+    map->size = 0;
+    map->head = NULL;
+    map->tail = NULL;
+}
+
+void heap_node_map_free(heap_node_map* map)
+{
+    if (!map)
+    {
+        return;
+    }
+
+    heap_node_map_clear(map);
+    free(map->table);
+    free(map);
+}
+
+
+/*************************************
+Fibonacci heap implementation follows:
+*************************************/
 
 struct fibonacci_heap {
-    unordered_map* node_map;
-    heap_node* minimum_node;
-    heap_node** node_array;
-    size_t         node_array_capacity;
-    size_t(*hash_function)(void*);
-    bool         (*equals_function)(void*, void*);
-    int          (*key_compare_function)(void*, void*);
+    heap_node_map*        node_map;
+    fibonacci_heap_node*  minimum_node;
+    fibonacci_heap_node** node_array;
+    size_t                node_array_capacity;
+    size_t                size;
 };
 
-static heap_node* fibonacci_heap_node_alloc(void* element, void* priority) {
-    heap_node* node = malloc(sizeof(heap_node));
+static fibonacci_heap_node* 
+fibonacci_heap_node_alloc(size_t vertex_id, 
+                          double priority) {
 
+    fibonacci_heap_node* node = malloc(sizeof(*node));
+    
     if (!node)
     {
         return NULL;
     }
 
-    node->element = element;
+    node->vertex_id = vertex_id;
     node->priority = priority;
     node->parent = NULL;
     node->left = node;
@@ -49,11 +334,11 @@ static heap_node* fibonacci_heap_node_alloc(void* element, void* priority) {
     return node;
 }
 
-static void fibonacci_heap_node_free(heap_node* node)
+static void fibonacci_heap_node_free_cascade(fibonacci_heap_node* node)
 {
-    heap_node* child;
-    heap_node* first_child;
-    heap_node* sibling;
+    fibonacci_heap_node* child;
+    fibonacci_heap_node* first_child;
+    fibonacci_heap_node* sibling;
 
     child = node->child;
 
@@ -82,36 +367,18 @@ static void fibonacci_heap_node_free(heap_node* node)
 
 fibonacci_heap*
 fibonacci_heap_alloc(size_t map_initial_capacity,
-    float map_load_factor,
-    size_t(*hash_function)(void*),
-    bool (*equals_function)(void*, void*),
-    int (*key_compare_function)(void*, void*))
+                     float map_load_factor)
 {
-    fibonacci_heap* heap;
-
-    if (!hash_function)
-    {
-        return NULL;
-    }
-
-    if (!equals_function)
-    {
-        return NULL;
-    }
-
-    if (!key_compare_function)
-    {
-        return NULL;
-    }
-
-    heap = malloc(sizeof(fibonacci_heap));
+    fibonacci_heap* heap = malloc(sizeof(fibonacci_heap));
 
     if (!heap)
     {
         return NULL;
     }
 
-    heap->node_array = malloc(sizeof(heap_node*) * DEFAULT_NODE_ARRAY_CAPACITY);
+    heap->node_array = 
+        malloc(sizeof(fibonacci_heap_node*) 
+               * DEFAULT_NODE_ARRAY_CAPACITY);
 
     if (!heap->node_array)
     {
@@ -120,10 +387,8 @@ fibonacci_heap_alloc(size_t map_initial_capacity,
     }
 
     heap->node_array_capacity = DEFAULT_NODE_ARRAY_CAPACITY;
-    heap->node_map = unordered_map_alloc(map_initial_capacity,
-        map_load_factor,
-        hash_function,
-        equals_function);
+    heap->node_map = heap_node_map_alloc(map_initial_capacity,
+                                         map_load_factor);
 
     if (!heap->node_map)
     {
@@ -133,30 +398,28 @@ fibonacci_heap_alloc(size_t map_initial_capacity,
     }
 
     heap->minimum_node = NULL;
-    heap->hash_function = hash_function;
-    heap->equals_function = equals_function;
-    heap->key_compare_function = key_compare_function;
-
     return heap;
 }
 
-bool fibonacci_heap_add(fibonacci_heap* heap, void* element, void* priority)
+int fibonacci_heap_add(fibonacci_heap* heap, 
+                        size_t vertex_id, 
+                        double priority)
 {
-    heap_node* node;
+    fibonacci_heap_node* node;
 
     if (!heap) {
-        return false;
+        return RETURN_STATUS_NO_HEAP;
     }
 
-    if (unordered_map_contains_key(heap->node_map, element))
+    if (heap_node_map_contains_key(heap->node_map, vertex_id));
     {
-        return false;
+        return RETURN_STATUS_ADDING_DUPLICATE_VERTEX;
     }
 
-    node = fibonacci_heap_node_alloc(element, priority);
+    node = fibonacci_heap_node_alloc(vertex_id, priority);
 
     if (!node) {
-        return false;
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     if (heap->minimum_node)
@@ -166,9 +429,7 @@ bool fibonacci_heap_add(fibonacci_heap* heap, void* element, void* priority)
         heap->minimum_node->right = node;
         node->right->left = node;
 
-        if (heap->key_compare_function(priority,
-            heap->minimum_node->priority) < 0)
-        {
+        if (priority < heap->minimum_node->priority) {
             heap->minimum_node = node;
         }
     }
@@ -177,11 +438,17 @@ bool fibonacci_heap_add(fibonacci_heap* heap, void* element, void* priority)
         heap->minimum_node = node;
     }
 
-    unordered_map_put(heap->node_map, element, node);
-    return true;
+    if (!heap_node_map_put(heap->node_map, vertex_id, node)) {
+        fibonacci_heap_node_free(node);
+        return RETURN_STATUS_NO_MEMORY;
+    }
+
+    return RETURN_STATUS_OK;
 }
 
-static void cut(fibonacci_heap* heap, heap_node* x, heap_node* y)
+static void cut(fibonacci_heap* heap,
+                fibonacci_heap_node* x, 
+                fibonacci_heap_node* y)
 {
     x->left->right = x->right;
     x->right->left = x->left;
@@ -206,9 +473,10 @@ static void cut(fibonacci_heap* heap, heap_node* x, heap_node* y)
     x->marked = false;
 }
 
-static void cascading_cut(fibonacci_heap* heap, heap_node* y)
+static void cascading_cut(fibonacci_heap* heap, 
+                          fibonacci_heap_node* y)
 {
-    heap_node* z = y->parent;
+    fibonacci_heap_node* z = y->parent;
 
     if (z)
     {
@@ -225,25 +493,25 @@ static void cascading_cut(fibonacci_heap* heap, heap_node* y)
 }
 
 bool fibonacci_heap_decrease_key(fibonacci_heap* heap,
-    void* element,
-    void* priority)
+                                 size_t vertex_id,
+                                 double priority)
 {
-    heap_node* x;
-    heap_node* y;
+    fibonacci_heap_node* x;
+    fibonacci_heap_node* y;
 
     if (!heap)
     {
         return false;
     }
 
-    x = unordered_map_get(heap->node_map, element);
+    x = heap_node_map_get(heap->node_map, vertex_id);
 
     if (!x)
     {
         return false;
     }
 
-    if (heap->key_compare_function(x->priority, priority) <= 0)
+    if (x->priority <= priority)
     {
         /* Cannot improve priority of the input element. */
         return false;
@@ -252,14 +520,12 @@ bool fibonacci_heap_decrease_key(fibonacci_heap* heap,
     x->priority = priority;
     y = x->parent;
 
-    if (y && heap->key_compare_function(x->priority, y->priority) < 0)
-    {
+    if (y && x->priority < y->priority) {
         cut(heap, x, y);
         cascading_cut(heap, y);
     }
 
-    if (heap->key_compare_function(x->priority, heap->minimum_node->priority) < 0)
-    {
+    if (x->priority < heap->minimum_node->priority) {
         heap->minimum_node = x;
     }
 
@@ -271,7 +537,8 @@ static bool try_expand_array(fibonacci_heap* heap, size_t size)
     if (heap->node_array_capacity < size)
     {
         free(heap->node_array);
-        heap->node_array = malloc(sizeof(heap_node*) * size);
+        heap->node_array = 
+            malloc(sizeof(fibonacci_heap_node*) * size);
 
         if (!heap->node_array)
         {
@@ -280,14 +547,13 @@ static bool try_expand_array(fibonacci_heap* heap, size_t size)
 
         heap->node_array_capacity = size;
         return true;
-    }
-    else
-    {
+    } else {
         return true;
     }
 }
 
-static void link(heap_node* y, heap_node* x)
+static void link(fibonacci_heap_node* y, 
+                 fibonacci_heap_node* x)
 {
     y->left->right = y->right;
     y->right->left = y->left;
@@ -315,20 +581,23 @@ static void link(heap_node* y, heap_node* x)
 static void consolidate(fibonacci_heap* heap)
 {
     size_t array_size = (size_t)(floor
-    (log(unordered_map_size(heap->node_map))
+    (log(heap_node_map_size(heap->node_map))
         / LOG_PHI)) + 1;
-    size_t     number_of_roots;
-    size_t     degree;
-    size_t     i;
-    heap_node* x;
-    heap_node* y;
-    heap_node* tmp;
-    heap_node* next;
+
+    size_t               number_of_roots;
+    size_t               degree;
+    size_t               i;
+    fibonacci_heap_node* x;
+    fibonacci_heap_node* y;
+    fibonacci_heap_node* tmp;
+    fibonacci_heap_node* next;
 
     try_expand_array(heap, array_size);
 
     /* Set the internal node array components to NULL. */
-    memset(heap->node_array, 0, array_size * sizeof(heap_node*));
+    memset(heap->node_array, 
+           0, 
+           array_size * sizeof(fibonacci_heap_node*));
 
     number_of_roots = 0;
     x = heap->minimum_node;
@@ -356,9 +625,7 @@ static void consolidate(fibonacci_heap* heap)
 
             if (!y) break;
 
-            if (heap->key_compare_function(x->priority,
-                y->priority) > 0)
-            {
+            if (x->priority > y->priority) {
                 tmp = y;
                 y = x;
                 x = tmp;
@@ -395,10 +662,7 @@ static void consolidate(fibonacci_heap* heap)
             heap->minimum_node->right = y;
             y->right->left = y;
 
-            if (heap->key_compare_function(
-                y->priority,
-                heap->minimum_node->priority) < 0)
-            {
+            if (heap->minimum_node->priority > y->priority) {
                 heap->minimum_node = y;
             }
         }
@@ -409,14 +673,14 @@ static void consolidate(fibonacci_heap* heap)
     }
 }
 
-void* fibonacci_heap_extract_min(fibonacci_heap* heap)
+size_t fibonacci_heap_extract_min(fibonacci_heap* heap)
 {
-    heap_node* z;
-    heap_node* x;
-    heap_node* tmp_right;
-    heap_node* node_to_free;
+    fibonacci_heap_node* z;
+    fibonacci_heap_node* x;
+    fibonacci_heap_node* tmp_right;
+    fibonacci_heap_node* node_to_free;
 
-    void* p_ret;
+    size_t return_vertex_id;
     size_t number_of_children;
 
     if (!heap)
@@ -454,7 +718,7 @@ void* fibonacci_heap_extract_min(fibonacci_heap* heap)
     z->left->right = z->right;
     z->right->left = z->left;
 
-    p_ret = heap->minimum_node->element;
+    return_vertex_id = heap->minimum_node->vertex_id;
 
     if (z == z->right)
     {
@@ -468,9 +732,9 @@ void* fibonacci_heap_extract_min(fibonacci_heap* heap)
         consolidate(heap);
     }
 
-    unordered_map_remove(heap->node_map, p_ret);
+    heap_node_map_remove(heap->node_map, return_vertex_id);
     free(node_to_free);
-    return p_ret;
+    return return_vertex_id;
 }
 
 bool fibonacci_heap_contains_key(fibonacci_heap* heap, void* element)
@@ -483,7 +747,7 @@ bool fibonacci_heap_contains_key(fibonacci_heap* heap, void* element)
     return unordered_map_contains_key(heap->node_map, element);
 }
 
-void* fibonacci_heap_min(fibonacci_heap* heap)
+size_t fibonacci_heap_min(fibonacci_heap* heap)
 {
     if (!heap)
     {
@@ -492,7 +756,7 @@ void* fibonacci_heap_min(fibonacci_heap* heap)
 
     if (heap->minimum_node)
     {
-        return heap->minimum_node->element;
+        return heap->minimum_node->vertex_id;
     }
 
     return NULL;
@@ -505,14 +769,14 @@ int fibonacci_heap_size(fibonacci_heap* heap)
         return 0;
     }
 
-    return unordered_map_size(heap->node_map);
+    return heap_node_map_size(heap->node_map);
 }
 
 void fibonacci_heap_clear(fibonacci_heap* heap)
 {
-    heap_node* current;
-    heap_node* sibling;
-    heap_node* first_root;
+    fibonacci_heap_node* current;
+    fibonacci_heap_node* sibling;
+    fibonacci_heap_node* first_root;
 
     if (!heap)
     {
@@ -543,9 +807,9 @@ void fibonacci_heap_clear(fibonacci_heap* heap)
     unordered_map_clear(heap->node_map);
 }
 
-static bool tree_is_healthy(fibonacci_heap* heap, heap_node* node)
+static bool tree_is_healthy(fibonacci_heap* heap, fibonacci_heap_node* node)
 {
-    heap_node* begin;
+    fibonacci_heap_node* begin;
 
     if (!node)
     {
@@ -556,9 +820,7 @@ static bool tree_is_healthy(fibonacci_heap* heap, heap_node* node)
 
     while (true)
     {
-        if (heap->key_compare_function(node->priority,
-            node->parent->priority) < 0)
-        {
+        if (node->priority < node->parent->priority) {
             return false;
         }
 
@@ -580,13 +842,11 @@ static bool tree_is_healthy(fibonacci_heap* heap, heap_node* node)
 
 static bool check_root_list(fibonacci_heap* heap)
 {
-    heap_node* current = heap->minimum_node;
+    fibonacci_heap_node* current = heap->minimum_node;
 
     while (true)
     {
-        if (heap->key_compare_function(current->priority,
-            heap->minimum_node->priority) < 0)
-        {
+        if (current->priority < heap->minimum_node->priority) {
             return false;
         }
 
@@ -601,7 +861,7 @@ static bool check_root_list(fibonacci_heap* heap)
 
 bool fibonacci_heap_is_healthy(fibonacci_heap* heap)
 {
-    heap_node* root;
+    fibonacci_heap_node* root;
 
     if (!heap)
     {

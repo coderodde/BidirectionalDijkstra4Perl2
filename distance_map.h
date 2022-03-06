@@ -14,11 +14,8 @@ extern "C" {
     * Allocates a new, empty map with given hash function and given equality   *
     * testing function.                                                        *
     ***************************************************************************/
-    distance_map* distance_map_alloc
-       (size_t   initial_capacity,
-        float    load_factor,
-        size_t (*hash_function)(void*),
-        bool   (*equals_function)(void*, void*));
+    distance_map* distance_map_alloc(size_t initial_capacity, 
+                                     float load_factor);
 
     /***************************************************************************
     * If p_map does not contain the key p_key, inserts it in the map,          *

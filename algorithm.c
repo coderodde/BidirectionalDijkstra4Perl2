@@ -15,28 +15,8 @@ if (p_return_status) {                          \
 
 #define CLEAN_SEARCH_STATE search_state_init(&search_state_)
 
-static size_t hash_function(void* node_id) {
-    return (size_t)node_id;
-}
-
-static int equals_function(void* node_1_id, void* node_2_id) {
-    return node_1_id == node_2_id;
-}
-
-static int priority_compare_function(void* p_a, void* p_b) {
-    double num_a = *(double*)p_a;
-    double num_b = *(double*)(p_b);
-
-    if (num_a < num_b) {
-        return -1;
-    }
-    else if (num_a > num_b) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
+static const size_t INITIAL_MAP_CAPACITY = 1024;
+static const float LOAD_FACTOR = 1.3f;
 
 typedef struct search_tate {
     fibonacci_heap* p_open_forward;
@@ -164,27 +144,6 @@ extern const int RETURN_STATUS_NO_GRAPH         = 3;
 extern const int RETURN_STATUS_NO_SOURCE_VERTEX = 4;
 extern const int RETURN_STATUS_NO_TARGET_VERTEX = 8;
 
-static size_t hash_function(void* node_id) {
-    return (size_t) node_id;
-}
-
-static int equals_function(void* node_1_id, void* node_2_id) {
-    return node_1_id == node_2_id;
-}
-
-static int priority_compare_function(void* p_a, void* p_b) {
-    double num_a = *(double*) p_a;
-    double num_b = *(double*)(p_b);
-
-    if (num_a < num_b) {
-        return -1;
-    } else if (num_a > num_b) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
 static list* traceback_path(size_t* p_touch_vertex,
                             unordered_map* parent_forward,
                             unordered_map* parent_backward) {
@@ -278,27 +237,33 @@ list* find_shortest_path(Graph* p_graph,
         return NULL;
     }
 
-    if (!unordered_map_put(p_distance_forward, source_vertex_id, (void*)0)) {
+    if (!distance_map_put(p_distance_forward, source_vertex_id, 0.0)) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
-    if (!unordered_map_put(p_distance_backward, target_vertex_id, (void*)0)) {
+    if (!distance_map_put(p_distance_backward, target_vertex_id, 0.0)) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
-    if (!unordered_map_put(p_parent_forward, source_vertex_id, NULL)) {
+    if (!parent_map_put(p_parent_forward,
+                        source_vertex_id, 
+                        source_vertex_id)) {
+
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
-    if (!unordered_map_put(p_parent_backward, target_vertex_id, NULL)) {
+    if (!parent_map_put(p_parent_backward,
+                        target_vertex_id,
+                        target_vertex_id)) {
+
         CLEAN_SEARCH_STATE;
-        TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
+        TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);  
         return NULL;
     }
 

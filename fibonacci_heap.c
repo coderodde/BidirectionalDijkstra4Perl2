@@ -1,5 +1,4 @@
 #include "fibonacci_heap.h"
-#include "unordered_map.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -20,7 +19,7 @@ typedef struct fibonacci_heap_node {
     fibonacci_heap_node* right;
     fibonacci_heap_node* child;
     size_t               degree;
-    bool                 marked;
+    int                  marked;
 } fibonacci_heap_node;
 
 typedef struct heap_node_map_entry {
@@ -857,7 +856,7 @@ bool fibonacci_heap_contains_key(fibonacci_heap* heap, void* element)
         return false;
     }
 
-    return unordered_map_contains_key(heap->node_map, element);
+    return heap_node_map_contains_key(heap->node_map, element);
 }
 
 size_t fibonacci_heap_min(fibonacci_heap* heap)
@@ -917,7 +916,7 @@ void fibonacci_heap_clear(fibonacci_heap* heap)
     }
 
     heap->minimum_node = NULL;
-    unordered_map_clear(heap->node_map);
+    heap_node_map_clear(heap->node_map);
 }
 
 static bool tree_is_healthy(fibonacci_heap* heap, fibonacci_heap_node* node)
@@ -1032,7 +1031,7 @@ void fibonacci_heap_free(fibonacci_heap* heap)
 
     if (heap->node_map)
     {
-        unordered_map_free(heap->node_map);
+        heap_node_map_free(heap->node_map);
     }
 
     free(heap);

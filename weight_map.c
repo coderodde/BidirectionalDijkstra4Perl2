@@ -3,8 +3,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-//typedef struct weight_map_entry weight_map_entry;
-
 typedef struct weight_map_entry {
     size_t            vertex_id;
     double            weight;
@@ -186,7 +184,7 @@ int weight_map_put(weight_map* map, size_t vertex_id, double weight)
 
     /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & map->mask;
-    entry = unordered_map_entry_alloc(vertex_id, weight);
+    entry = weight_map_entry_alloc(vertex_id, weight);
     entry->chain_next = map->table[index];
     map->table[index] = entry;
 

@@ -121,21 +121,22 @@ static list* traceback_path(size_t* p_touch_vertex,
                             parent_map* parent_backward) {
 
     list* path = list_alloc(100);
-    size_t* p_current_vertex = p_touch_vertex;
+    /*size_t* p_current_vertex = p_touch_vertex;
 
     while (p_current_vertex) {
         list_push_front(path, p_current_vertex);
-        p_current_vertex = unordered_map_get(parent_forward, 
-                                             p_current_vertex);
+        p_current_vertex = parent_map_get(parent_forward, 
+                                          p_current_vertex);
     }
 
-    p_current_vertex = unordered_map_get(parent_backward, p_touch_vertex);
+    p_current_vertex = parent_map_get(parent_backward, 
+                                      p_touch_vertex);
 
     while (p_current_vertex) {
         list_push_back(path, p_current_vertex);
-        p_current_vertex = unordered_map_get(parent_backward,   
+        p_current_vertex = parent_map_get(parent_backward,   
                                              p_current_vertex);
-    }
+    }*/
 
     return path;
 }

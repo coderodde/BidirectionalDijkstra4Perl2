@@ -147,8 +147,6 @@
     <ClInclude Include="graph.h" />
     <ClInclude Include="graph_vertex_map.h" />
     <ClInclude Include="parent_map.h" />
-    <ClInclude Include="unordered_map.h" />
-    <ClInclude Include="unordered_set.h" />
     <ClInclude Include="algorithm.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="util.h" />
@@ -162,8 +160,6 @@
     <ClCompile Include="graph_vertex_map.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="parent_map.c" />
-    <ClCompile Include="unordered_map.c" />
-    <ClCompile Include="unordered_set.c" />
     <ClCompile Include="algorithm.c" />
     <ClCompile Include="list.c" />
     <ClCompile Include="vertex_set.c" />

@@ -383,7 +383,7 @@ graph_vertex_map_iterator_alloc(graph_vertex_map* map)
     return p_ret;
 }
 
-size_t graph_vertex_map_iterator_has_next(
+int graph_vertex_map_iterator_has_next(
     graph_vertex_map_iterator* iterator)
 {
     if (!iterator)
@@ -391,30 +391,15 @@ size_t graph_vertex_map_iterator_has_next(
         return 0;
     }
 
-    if (unordered_map_iterator_is_disturbed(iterator))
-    {
-        return 0;
-    }
-
     return iterator->map->size - iterator->iterated_count;
 }
 
-bool graph_vertex_map_iterator_next(graph_vertex_map_iterator* iterator,
+int graph_vertex_map_iterator_next(
+    graph_vertex_map_iterator* iterator,
     size_t* vertex_id_pointer,
     GraphVertex** vertex_pointer)
 {
-    if (!iterator)
-    {
-        return false;
-    }
-
-    if (!iterator->next_entry)
-    {
-        return false;
-    }
-
-    if (unordered_map_iterator_is_disturbed(iterator))
-    {
+    if (!iterator || !iterator->next_entry) {
         return false;
     }
 

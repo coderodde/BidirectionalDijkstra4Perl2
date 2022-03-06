@@ -56,7 +56,7 @@ extern "C" {
     /***************************************************************************
     * Returns the number of keys not yet iterated over.                        *
     ***************************************************************************/
-    size_t graph_vertex_map_iterator_has_next
+    int graph_vertex_map_iterator_has_next
     (graph_vertex_map_iterator* iterator);
 
     /***************************************************************************

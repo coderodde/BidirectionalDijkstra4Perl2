@@ -38,8 +38,8 @@ void freeGraphVertex(GraphVertex* p_graph_vertex)
 void initGraph(Graph* p_graph)
 {
 	p_graph->p_nodes =
-		graph_vertex_alloc(initial_capacity, 
-						   load_factor);
+		graph_vertex_map_alloc(initial_capacity, 
+						       load_factor);
 }
 
 void freeGraph(Graph* p_graph)
@@ -182,9 +182,9 @@ void addEdge(Graph* p_graph,
 	p_tail_vertex = addVertex(p_graph, tail_vertex_id);
 	p_head_vertex = addVertex(p_graph, head_vertex_id);
 
-	weigh_map_put(p_tail_vertex->p_children,
-				  p_head_vertex->id,
-				  weight);
+	weight_map_put(p_tail_vertex->p_children,
+				   p_head_vertex->id,
+			   	   weight);
 
 	weight_map_put(p_head_vertex->p_parents,
 				   p_tail_vertex->id,
@@ -230,7 +230,7 @@ double getEdgeWeight(
 	size_t head_vertex_id)
 {
     GraphVertex* p_graph_vertex = 
-		unordered_map_get(p_graph->p_nodes, tail_vertex_id);
+		graph_vertex_map_get(p_graph->p_nodes, tail_vertex_id);
 
 	if (!p_graph_vertex) {
 		abort();

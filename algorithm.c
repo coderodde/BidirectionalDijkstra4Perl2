@@ -33,60 +33,42 @@ static void search_state_init(search_state* p_state) {
     p_state->p_open_forward =
         fibonacci_heap_alloc(
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function,
-            priority_compare_function);
+            LOAD_FACTOR);
 
     p_state->p_open_backward =
         fibonacci_heap_alloc(
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function,
-            priority_compare_function);
+            LOAD_FACTOR);
 
     p_state->p_closed_forward =
         vertex_set_alloc(
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function);
+            LOAD_FACTOR);
         
     p_state->p_closed_backward =
         vertex_set_alloc(
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function);
+            LOAD_FACTOR);
 
     p_state->p_distance_forward =
         distance_map_alloc( 
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function);
+            LOAD_FACTOR);
 
     p_state->p_distance_backward =
         distance_map_alloc(
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function);
+            LOAD_FACTOR);
 
     p_state->p_parent_forward =
         parent_map_alloc(
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function);
+            LOAD_FACTOR);
 
     p_state->p_parent_backward =
         parent_map_alloc(
             INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR,
-            hash_function,
-            equals_function);
+            LOAD_FACTOR);
 }
 
 static int search_state_ok(search_state* p_search_state) {
@@ -133,16 +115,6 @@ static void search_state_free(search_state* p_search_state) {
         parent_map_free(p_search_state->p_parent_backward);
     }
 }
-
-static const size_t INITIAL_MAP_CAPACITY = 1024;
-static const float LOAD_FACTOR = 1.3f;
-
-extern const int RETURN_STATUS_OK               = 0;
-extern const int RETURN_STATUS_NO_PATH          = 1;
-extern const int RETURN_STATUS_NO_MEMORY        = 2;
-extern const int RETURN_STATUS_NO_GRAPH         = 3;
-extern const int RETURN_STATUS_NO_SOURCE_VERTEX = 4;
-extern const int RETURN_STATUS_NO_TARGET_VERTEX = 8;
 
 static list* traceback_path(size_t* p_touch_vertex,
                             unordered_map* parent_forward,
@@ -215,23 +187,23 @@ list* find_shortest_path(Graph* p_graph,
         return NULL;
     }
 
-    fibonacci_heap* p_open_forward    = search_state_.p_open_forward;
-    fibonacci_heap* p_open_backward   = search_state_.p_open_backward;
-    vertex_set* p_closed_forward      = search_state_.p_closed_forward;
-    vertex_set* p_closed_backward     = search_state_.p_closed_backward;
-    distance_map* p_distance_forward  = search_state_.p_distance_forward;
-    distance_map* p_distance_backward = search_state_.p_distance_backward;
-    parent_map* p_parent_forward      = search_state_.p_parent_forward;
-    parent_map* p_parent_backward     = search_state_.p_parent_backward;
+    p_open_forward      = search_state_.p_open_forward;
+    p_open_backward     = search_state_.p_open_backward;
+    p_closed_forward    = search_state_.p_closed_forward;
+    p_closed_backward   = search_state_.p_closed_backward;
+    p_distance_forward  = search_state_.p_distance_forward;
+    p_distance_backward = search_state_.p_distance_backward;
+    p_parent_forward    = search_state_.p_parent_forward;
+    p_parent_backward   = search_state_.p_parent_backward;
 
     /* Initialize the state: */
-    if (!fibonacci_heap_add(p_open_forward, source_vertex_id, (void*) 0)) {
+    if (!fibonacci_heap_add(p_open_forward, source_vertex_id, 0.0)) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
     
-    if (!fibonacci_heap_add(p_open_backward, target_vertex_id, (void*) 0)) {
+    if (!fibonacci_heap_add(p_open_backward, target_vertex_id, 0.0)) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;

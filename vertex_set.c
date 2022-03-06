@@ -81,18 +81,9 @@ static size_t fix_initial_capacity(size_t initial_capacity)
 }
 
 vertex_set* vertex_set_alloc(size_t initial_capacity,
-    float load_factor,
-    size_t(*hash_function)(void*),
-    bool (*equals_function)(void*, void*))
+                             float load_factor)
 {
-    vertex_set* set;
-
-    if (!hash_function || !equals_function)
-    {
-        return NULL;
-    }
-
-    set = malloc(sizeof(*set));
+    vertex_set* set = malloc(sizeof(*set));
 
     if (!set)
     {
@@ -111,8 +102,6 @@ vertex_set* vertex_set_alloc(size_t initial_capacity,
     set->table = calloc(initial_capacity,
                         sizeof(vertex_set_entry*));
 
-    set->hash_function = hash_function;
-    set->equals_function = equals_function;
     set->mask = initial_capacity - 1;
     set->max_allowed_size = (size_t)(initial_capacity * load_factor);
 

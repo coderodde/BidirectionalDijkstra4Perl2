@@ -1,6 +1,7 @@
 #ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_VERTEX_SET_H
 #define	COM_GITHUB_CODERODDE_BIDIR_SEARCH_VERTEX_SET_H
 
+#include "util.h"
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -17,9 +18,7 @@ extern "C" {
     ***************************************************************************/
     vertex_set* vertex_set_alloc
        (size_t initial_capacity,
-        float load_factor,
-        size_t(*p_hash_function)(void*),
-        bool (*p_equals_function)(void*, void*));
+        float load_factor);
 
     /***************************************************************************
     * Adds 'p_element' to the set if not already there. Returns true if the    *

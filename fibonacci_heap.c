@@ -5,11 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int RETURN_STATUS_OK                      = 0;
-const int RETURN_STATUS_NO_HEAP                 = 1;
-const int RETURN_STATUS_ADDING_DUPLICATE_VERTEX = 2;
-const int RETURN_STATUS_NO_MEMORY               = 3;
-
 static const double LOG_PHI = 0.438;
 static const size_t DEFAULT_NODE_ARRAY_CAPACITY = 8;
 
@@ -29,11 +24,11 @@ typedef struct fibonacci_heap_node {
 } fibonacci_heap_node;
 
 typedef struct heap_node_map_entry {
-    size_t                      vertex_id;
-    fibonacci_heap_node*        heap_node;
-    struct heap_node_map_entry* chain_next;
-    struct heap_node_map_entry* prev;
-    struct heap_node_map_entry* next;
+    size_t               vertex_id;
+    fibonacci_heap_node* heap_node;
+    heap_node_map_entry* chain_next;
+    heap_node_map_entry* prev;
+    heap_node_map_entry* next;
 } heap_node_map_entry;
 
 typedef struct heap_node_map {
@@ -236,6 +231,29 @@ bool heap_node_map_put(
     return true;
 }
 
+bool heap_node_map_contains_key(heap_node_map* map, size_t vertex_id) 
+{
+    size_t index;
+    heap_node_map_entry* entry;
+
+    if (!map)
+    {
+        return false;
+    }
+
+    index = vertex_id & map->mask;
+
+    for (entry = map->table[index]; entry; entry = entry->chain_next)
+    {
+        if (vertex_id == entry->vertex_id)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 fibonacci_heap_node* heap_node_map_get(heap_node_map* map, size_t vertex_id)
 {
     size_t index;
@@ -302,14 +320,6 @@ void heap_node_map_free(heap_node_map* map)
 /*************************************
 Fibonacci heap implementation follows:
 *************************************/
-
-struct fibonacci_heap {
-    heap_node_map*        node_map;
-    fibonacci_heap_node*  minimum_node;
-    fibonacci_heap_node** node_array;
-    size_t                node_array_capacity;
-    size_t                size;
-};
 
 static fibonacci_heap_node* 
 fibonacci_heap_node_alloc(size_t vertex_id, 
@@ -762,7 +772,7 @@ size_t fibonacci_heap_min(fibonacci_heap* heap)
     return NULL;
 }
 
-int fibonacci_heap_size(fibonacci_heap* heap)
+size_t fibonacci_heap_size(fibonacci_heap* heap)
 {
     if (!heap)
     {

@@ -1,6 +1,7 @@
 #ifndef FIBONACCI_HEAP_H
 #define	FIBONACCI_HEAP_H
 
+#include "util.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -9,6 +10,9 @@ extern "C" {
 #endif
 
     typedef struct fibonacci_heap fibonacci_heap;
+    typedef struct fibonacci_heap_node fibonacci_heap_node;
+    typedef struct heap_node_map_entry heap_node_map_entry;
+    typedef struct heap_node_map heap_node_map;
 
     /***************************************************************************
     * Allocates a new empty Fibonacci heap.                                    *

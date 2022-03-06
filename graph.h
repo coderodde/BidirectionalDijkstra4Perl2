@@ -2,12 +2,12 @@
 #define COM_GITHUB_CODERODDE_PERL_GRAPH_H
 
 #include "graph_vertex_map.h"
-#include "unordered_map.h"
+#include "weight_map.h"
 
 typedef struct GraphVertex {
 	size_t id;
-	unordered_map* p_children; // Maps a child to the edge weight.
-	unordered_map* p_parents;  // Maps a parent to the edge weight.
+	weight_map* p_children; // Maps a child to the edge weight.
+	weight_map* p_parents;  // Maps a parent to the edge weight.
 } GraphVertex;
 
 typedef struct Graph {

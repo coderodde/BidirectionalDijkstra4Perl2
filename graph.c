@@ -1,4 +1,6 @@
 #include "graph.h"
+#include "graph_vertex_map.h"
+#include "weight_map.h"
 
 static const size_t initial_capacity = 1024;
 static const float load_factor = 1.3f;
@@ -6,24 +8,20 @@ static const float load_factor = 1.3f;
 void initGraphVertex(GraphVertex* p_graph_vertex, size_t id)
 {
 	p_graph_vertex->p_children =
-		unordered_map_alloc(initial_capacity,
-			load_factor,
-			hash_function,
-			equals_function);
+		weight_map_alloc(initial_capacity,
+						 load_factor);
 
 	p_graph_vertex->p_parents =
-		unordered_map_alloc(initial_capacity,
-			load_factor,
-			hash_function,
-			equals_function);
+		weight_map_alloc(initial_capacity,
+						 load_factor);
 
 	p_graph_vertex->id = id;
 }
 
 void freeGraphVertex(GraphVertex* p_graph_vertex)
 {
-	unordered_map_free(p_graph_vertex->p_children);
-	unordered_map_free(p_graph_vertex->p_parents);
+	weight_map_free(p_graph_vertex->p_children);
+	weight_map_free(p_graph_vertex->p_parents);
 }
 
 void initGraph(Graph* p_graph)
@@ -35,33 +33,32 @@ void initGraph(Graph* p_graph)
 
 void freeGraph(Graph* p_graph)
 {
-	unordered_map_iterator* p_iterator =
-		unordered_map_iterator_alloc(p_graph->p_nodes);
+	graph_vertex_map_iterator* p_iterator =
+		graph_vertex_map_iterator_alloc(p_graph->p_nodes);
 
 	GraphVertex* p_graph_vertex;
 
-	while (unordered_map_iterator_has_next(p_iterator))
+	while (graph_vertex_map_iterator_has_next(p_iterator))
 	{
-		void* p_key;
-		void* p_value;
+		size_t* p_vertex_id;
+		GraphVertex* p_graph_vertex;
 
-		unordered_map_iterator_next(
+		graph_vertex_map_iterator_next(
 			p_iterator,
-			&p_key,
-			&p_value);
+			&p_vertex_id,
+			&p_graph_vertex);
 
-		p_graph_vertex = p_value;
 		freeGraphVertex(p_graph_vertex);
 	}
 
-	unordered_map_free(p_graph->p_nodes);
+	graph_vertex_map_free(p_graph->p_nodes);
 	p_graph->p_nodes = NULL;
 }
 
 GraphVertex* addVertex(Graph* p_graph, size_t vertex_id)
 {
 	GraphVertex* p_graph_vertex =
-		unordered_map_get(p_graph->p_nodes, vertex_id);
+		graph_vertex_map_get(p_graph->p_nodes, vertex_id);
 
 	if (p_graph_vertex)
 	{
@@ -72,7 +69,7 @@ GraphVertex* addVertex(Graph* p_graph, size_t vertex_id)
 
 	initGraphVertex(p_graph_vertex, vertex_id);
 
-	unordered_map_put(
+	graph_vertex_map_put(
 		p_graph->p_nodes,
 		vertex_id,
 		p_graph_vertex);
@@ -89,24 +86,24 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 	size_t child_vertex_id;
 	size_t parent_vertex_id;
 
-	unordered_map_iterator* p_child_iterator;
-	unordered_map_iterator* p_parent_iterator;
+	weight_map_iterator* p_child_iterator;
+	weight_map_iterator* p_parent_iterator;
 
 	double* p_weight;
 
-	p_graph_vertex = unordered_map_get(p_graph->p_nodes, vertex_id);
+	p_graph_vertex = graph_vertex_map_get(p_graph->p_nodes, vertex_id);
 
 	if (!p_graph_vertex) {
 		return;
 	}
 
 	p_child_iterator =
-		unordered_map_iterator_alloc(p_graph_vertex->p_children);
+		weight_map_iterator_alloc(p_graph_vertex->p_children);
 
 	// Disconnect from children:
-	while (unordered_map_iterator_has_next(p_child_iterator))
+	while (weight_map_iterator_has_next(p_child_iterator))
 	{
-		unordered_map_iterator_next(
+		weight_map_iterator_next(
 			p_child_iterator,
 			&child_vertex_id,
 			&p_weight);
@@ -115,12 +112,12 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 	}
 
 	p_parent_iterator =
-		unordered_map_iterator_alloc(p_graph_vertex->p_parents);
+		weight_map_iterator_alloc(p_graph_vertex->p_parents);
 
 	// Disconnect from parents:
-	while (unordered_map_iterator_has_next(p_parent_iterator))
+	while (weight_map_iterator_has_next(p_parent_iterator))
 	{
-		unordered_map_iterator_next(
+		weight_map_iterator_next(
 		    p_parent_iterator,
 			&parent_vertex_id,
 			&p_weight);
@@ -128,7 +125,7 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 		removeEdge(p_graph, parent_vertex_id, p_graph_vertex->id);
 	}
 
-	unordered_map_remove(p_graph->p_nodes, vertex_id);
+	graph_vertex_map_remove(p_graph->p_nodes, vertex_id);
 
 	// Free the children/parents maps:
 	freeGraphVertex(p_graph_vertex);
@@ -136,21 +133,18 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 
 int hasVertex(Graph* p_graph, size_t vertex_id)
 {
-	return unordered_map_contains_key(
+	return graph_vertex_map_contains_key(
 	    p_graph->p_nodes,
 		vertex_id);
 }
 
 GraphVertex* getVertex(Graph* p_graph, size_t vertex_id)
 {
-	void* p_value = unordered_map_get(p_graph->p_nodes, vertex_id);
+	GraphVertex* p_graph_vertex =
+		graph_vertex_map_get(p_graph->p_nodes, 
+						     vertex_id);
 
-	if (p_value)
-	{
-		return (GraphVertex*) p_value;
-	}
-
-	return NULL;
+	return p_graph_vertex;
 }
 
 void addEdge(Graph* p_graph,
@@ -160,24 +154,30 @@ void addEdge(Graph* p_graph,
 {
 	GraphVertex* p_head_vertex;
 	GraphVertex* p_tail_vertex;
+	GraphVertex* p_temp_vertex;
 
 	if (hasEdge(p_graph, tail_vertex_id, head_vertex_id)) {
+		/* Update weight: */
+		p_temp_vertex = 
+			graph_vertex_map_get(p_graph->p_nodes, 
+								 tail_vertex_id);
+
+		weight_map_put(p_temp_vertex->p_children, 
+					   head_vertex_id, 
+					   weight);
 		return;
 	}
 
 	p_tail_vertex = addVertex(p_graph, tail_vertex_id);
 	p_head_vertex = addVertex(p_graph, head_vertex_id);
 
-	double* p_weight = malloc(sizeof(*p_weight));
-	*p_weight = weight;
+	weigh_map_put(p_tail_vertex->p_children,
+				  p_head_vertex->id,
+				  weight);
 
-	unordered_map_put(p_tail_vertex->p_children,
-		p_head_vertex->id,
-		(void*) p_weight);
-
-	unordered_map_put(p_head_vertex->p_parents,
-		p_tail_vertex->id,
-		(void*) p_weight);
+	weight_map_put(p_head_vertex->p_parents,
+				   p_tail_vertex->id,
+				   weight);
 }
 
 void removeEdge(Graph* p_graph,
@@ -194,8 +194,8 @@ void removeEdge(Graph* p_graph,
 		return;
 	}
 
-	unordered_map_remove(p_head_vertex->p_parents, tail_vertex_id);
-	unordered_map_remove(p_tail_vertex->p_children, head_vertex_id);
+	weight_map_remove(p_head_vertex->p_parents,  tail_vertex_id);
+	weight_map_remove(p_tail_vertex->p_children, head_vertex_id);
 }
 
 int hasEdge(Graph* p_graph,
@@ -203,15 +203,14 @@ int hasEdge(Graph* p_graph,
 			size_t head_vertex_id) 
 {
 	GraphVertex* p_graph_vertex =
-		unordered_map_get(p_graph->p_nodes, tail_vertex_id);
+		graph_vertex_map_get(p_graph->p_nodes, tail_vertex_id);
 
 	if (!p_graph_vertex) {
 		return 0;
 	}
 
-	return unordered_map_contains_key(
-		p_graph_vertex->p_children,
-		head_vertex_id);
+	return weight_map_contains_key(p_graph_vertex->p_children,
+								   head_vertex_id);
 }
 
 double getEdgeWeight(
@@ -222,11 +221,10 @@ double getEdgeWeight(
     GraphVertex* p_graph_vertex = 
 		unordered_map_get(p_graph->p_nodes, tail_vertex_id);
 
-	void* p_value = 
-		unordered_map_get(
-			p_graph_vertex->p_children, 
-			head_vertex_id);
+	if (!p_graph_vertex) {
+		abort();
+	}
 
-	double* p_weight = (double*)(p_value);
-	return *p_weight;
+	return weight_map_get(p_graph_vertex->p_children,
+						  head_vertex_id);
 }

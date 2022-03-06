@@ -9,17 +9,15 @@ extern "C" {
 #endif
 
     typedef struct weight_map weight_map;
+    typedef struct weight_map_entry weight_map_entry;
     typedef struct weight_map_iterator weight_map_iterator;
 
     /***************************************************************************
     * Allocates a new, empty map with given hash function and given equality   *
     * testing function.                                                        *
     ***************************************************************************/
-    weight_map* weight_map_alloc
-       (size_t   initial_capacity,
-        float    load_factor,
-        size_t(*hash_function)(void*),
-        bool   (*equals_function)(void*, void*));
+    weight_map* weight_map_alloc(size_t initial_capacity,
+                                 float load_factor);
 
     /***************************************************************************
     * If p_map does not contain the key p_key, inserts it in the map,          *

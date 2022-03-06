@@ -181,6 +181,8 @@ list* find_shortest_path(Graph* p_graph,
         return NULL;
     }
 
+    search_state_init(&search_state_);
+
     if (!search_state_ok(&search_state_)) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
@@ -197,42 +199,50 @@ list* find_shortest_path(Graph* p_graph,
     p_parent_backward   = search_state_.p_parent_backward;
 
     /* Initialize the state: */
-    if (!fibonacci_heap_add(p_open_forward, source_vertex_id, 0.0)) {
+    if (fibonacci_heap_add(p_open_forward, 
+                           source_vertex_id, 
+                           0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
     
-    if (!fibonacci_heap_add(p_open_backward, target_vertex_id, 0.0)) {
+    if (fibonacci_heap_add(p_open_backward,
+                           target_vertex_id, 
+                           0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
-    if (!distance_map_put(p_distance_forward, source_vertex_id, 0.0)) {
+    if (distance_map_put(p_distance_forward, 
+                         source_vertex_id, 
+                         0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
-    if (!distance_map_put(p_distance_backward, target_vertex_id, 0.0)) {
+    if (distance_map_put(p_distance_backward, 
+                         target_vertex_id, 
+                         0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
-    if (!parent_map_put(p_parent_forward,
-                        source_vertex_id, 
-                        source_vertex_id)) {
+    if (parent_map_put(p_parent_forward,
+                       source_vertex_id, 
+                       source_vertex_id) != RETURN_STATUS_OK) {
 
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
-    if (!parent_map_put(p_parent_backward,
-                        target_vertex_id,
-                        target_vertex_id)) {
+    if (parent_map_put(p_parent_backward,
+                       target_vertex_id,
+                       target_vertex_id) != RETURN_STATUS_OK) {
 
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);  

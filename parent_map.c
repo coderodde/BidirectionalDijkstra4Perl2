@@ -1,4 +1,5 @@
 #include "distance_map.h"
+#include "util.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -81,20 +82,10 @@ static size_t fix_initial_capacity(size_t initial_capacity)
     return ret;
 }
 
-parent_map* parent_map_alloc(
-    size_t initial_capacity,
-    float load_factor,
-    size_t(*hash_function)(void*),
-    bool (*equals_function)(void*, void*))
+parent_map* parent_map_alloc(size_t initial_capacity,
+                             float load_factor)
 {
-    parent_map* map;
-
-    if (!hash_function || !equals_function)
-    {
-        return NULL;
-    }
-
-    map = malloc(sizeof(*map));
+    parent_map* map = malloc(sizeof(*map));
 
     if (!map)
     {
@@ -117,7 +108,7 @@ parent_map* parent_map_alloc(
     return map;
 }
 
-static void ensure_capacity(parent_map* map)
+static int ensure_capacity(parent_map* map)
 {
     size_t new_capacity;
     size_t new_mask;
@@ -127,7 +118,7 @@ static void ensure_capacity(parent_map* map)
 
     if (map->size < map->max_allowed_size)
     {
-        return;
+        return RETURN_STATUS_OK;
     }
 
     new_capacity = 2 * map->table_capacity;
@@ -136,7 +127,7 @@ static void ensure_capacity(parent_map* map)
 
     if (!new_table)
     {
-        return;
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     /* Rehash the entries. */
@@ -153,21 +144,22 @@ static void ensure_capacity(parent_map* map)
     map->table_capacity = new_capacity;
     map->mask = new_mask;
     map->max_allowed_size = (size_t)(new_capacity * map->load_factor);
+
+    return RETURN_STATUS_OK;
 }
 
-bool parent_map_put(
+int parent_map_put(
     parent_map* map, 
     size_t vertex_id, 
     size_t predecessor_vertex_id)
 {
     size_t index;
     size_t hash_value;
-    void* old_value;
     parent_map_entry* entry;
 
     if (!map)
     {
-        return false;
+        return RETURN_STATUS_NO_MAP;
     }
 
     hash_value = vertex_id;
@@ -178,11 +170,13 @@ bool parent_map_put(
         if (entry->vertex_id == vertex_id)
         {
             entry->predecessor_vertex_id = predecessor_vertex_id;
-            return true;
+            return RETURN_STATUS_OK;
         }
     }
 
-    ensure_capacity(map);
+    if (ensure_capacity(map) != RETURN_STATUS_OK) {
+        return RETURN_STATUS_NO_MEMORY;
+    }
 
     /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & map->mask;
@@ -209,7 +203,7 @@ bool parent_map_put(
     }
 
     map->size++;
-    return true;
+    return RETURN_STATUS_OK;
 }
 
 size_t parent_map_get(parent_map* map, size_t vertex_id)

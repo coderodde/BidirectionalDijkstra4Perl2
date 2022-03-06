@@ -160,7 +160,6 @@
     <ClCompile Include="unordered_set.c" />
     <ClCompile Include="algorithm.c" />
     <ClCompile Include="list.c" />
-    <ClCompile Include="util.c" />
     <ClCompile Include="vertex_set.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

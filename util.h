@@ -8,6 +8,8 @@
 #define RETURN_STATUS_NO_MEMORY               3
 #define RETURN_STATUS_NO_PATH                 4
 #define RETURN_STATUS_NO_GRAPH                5
+#define RETURN_STATUS_NOTHING_TO_REMOVE       6
+#define RETURN_STATUS_NO_MAP                  7
 #define RETURN_STATUS_NO_SOURCE_VERTEX        8
 #define RETURN_STATUS_NO_TARGET_VERTEX        16
 

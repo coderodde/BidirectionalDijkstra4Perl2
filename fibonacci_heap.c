@@ -231,6 +231,16 @@ bool heap_node_map_put(
     return true;
 }
 
+size_t heap_node_map_size(heap_node_map* map)
+{
+    if (!map) {
+        abort();
+        return;
+    }
+
+    return map->size;
+}
+
 bool heap_node_map_contains_key(heap_node_map* map, size_t vertex_id) 
 {
     size_t index;
@@ -247,11 +257,11 @@ bool heap_node_map_contains_key(heap_node_map* map, size_t vertex_id)
     {
         if (vertex_id == entry->vertex_id)
         {
-            return true;
+            return 1;
         }
     }
 
-    return false;
+    return 0;
 }
 
 fibonacci_heap_node* heap_node_map_get(heap_node_map* map, size_t vertex_id)
@@ -275,7 +285,70 @@ fibonacci_heap_node* heap_node_map_get(heap_node_map* map, size_t vertex_id)
     }
 
     return NULL;
+
 }
+
+int heap_node_map_remove(heap_node_map* map, size_t vertex_id)
+{
+    size_t index;
+    heap_node_map_entry* prev_entry;
+    heap_node_map_entry* current_entry;
+
+    if (!map)
+    {
+        return RETURN_STATUS_NO_HEAP;
+    }
+
+    index = vertex_id & map->mask;
+
+    prev_entry = NULL;
+
+    for (current_entry = map->table[index];
+        current_entry;
+        current_entry = current_entry->chain_next)
+    {
+        if (vertex_id == current_entry->vertex_id)
+        {
+            if (prev_entry)
+            {
+                /* Omit the 'p_current_entry' in the collision chain. */
+                prev_entry->chain_next = current_entry->chain_next;
+            }
+            else
+            {
+                map->table[index] = current_entry->chain_next;
+            }
+
+            /* Unlink from the global iteration chain. */
+            if (current_entry->prev)
+            {
+                current_entry->prev->next = current_entry->next;
+            }
+            else
+            {
+                map->head = current_entry->next;
+            }
+
+            if (current_entry->next)
+            {
+                current_entry->next->prev = current_entry->prev;
+            }
+            else
+            {
+                map->tail = current_entry->prev;
+            }
+
+            map->size--;
+            free(current_entry);
+            return RETURN_STATUS_OK;
+        }
+
+        prev_entry = current_entry;
+    }
+
+    return RETURN_STATUS_NOTHING_TO_REMOVE;
+}
+
 
 static void heap_node_map_clear(heap_node_map* map)
 {
@@ -342,6 +415,36 @@ fibonacci_heap_node_alloc(size_t vertex_id,
     node->marked = false;
 
     return node;
+}
+static void fibonacci_heap_node_free(fibonacci_heap_node* node)
+{
+    fibonacci_heap_node* child;
+    fibonacci_heap_node* first_child;
+    fibonacci_heap_node* sibling;
+
+    child = node->child;
+
+    if (!child)
+    {
+        free(node);
+        return;
+    }
+
+    first_child = child;
+
+    while (true)
+    {
+        sibling = child->right;
+        fibonacci_heap_node_free(child);
+        child = sibling;
+
+        if (child == first_child)
+        {
+            break;
+        }
+    }
+
+    free(node);
 }
 
 static void fibonacci_heap_node_free_cascade(fibonacci_heap_node* node)
@@ -412,8 +515,8 @@ fibonacci_heap_alloc(size_t map_initial_capacity,
 }
 
 int fibonacci_heap_add(fibonacci_heap* heap, 
-                        size_t vertex_id, 
-                        double priority)
+                       size_t vertex_id, 
+                       double priority)
 {
     fibonacci_heap_node* node;
 
@@ -421,7 +524,7 @@ int fibonacci_heap_add(fibonacci_heap* heap,
         return RETURN_STATUS_NO_HEAP;
     }
 
-    if (heap_node_map_contains_key(heap->node_map, vertex_id));
+    if (heap_node_map_contains_key(heap->node_map, vertex_id))
     {
         return RETURN_STATUS_ADDING_DUPLICATE_VERTEX;
     }
@@ -449,7 +552,7 @@ int fibonacci_heap_add(fibonacci_heap* heap,
     }
 
     if (!heap_node_map_put(heap->node_map, vertex_id, node)) {
-        fibonacci_heap_node_free(node);
+        free(node);
         return RETURN_STATUS_NO_MEMORY;
     }
 

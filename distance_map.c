@@ -1,4 +1,5 @@
 #include "distance_map.h"
+#include "util.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -108,7 +109,7 @@ distance_map* distance_map_alloc(size_t initial_capacity,
     return map;
 }
 
-static void ensure_capacity(distance_map* map)
+static int ensure_capacity(distance_map* map)
 {
     size_t new_capacity;
     size_t new_mask;
@@ -118,7 +119,7 @@ static void ensure_capacity(distance_map* map)
 
     if (map->size < map->max_allowed_size)
     {
-        return;
+        return RETURN_STATUS_OK;
     }
 
     new_capacity = 2 * map->table_capacity;
@@ -127,7 +128,7 @@ static void ensure_capacity(distance_map* map)
 
     if (!new_table)
     {
-        return;
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     /* Rehash the entries. */
@@ -144,18 +145,21 @@ static void ensure_capacity(distance_map* map)
     map->table_capacity = new_capacity;
     map->mask = new_mask;
     map->max_allowed_size = (size_t)(new_capacity * map->load_factor);
+
+    return RETURN_STATUS_OK;
 }
 
-bool distance_map_put(distance_map* map, size_t vertex_id, double distance)
+int distance_map_put(distance_map* map, 
+                     size_t vertex_id, 
+                     double distance)
 {
     size_t index;
     size_t hash_value;
-    void* old_value;
     distance_map_entry* entry;
 
     if (!map)
     {
-        return false;
+        return RETURN_STATUS_NO_MAP;
     }
 
     hash_value = vertex_id;
@@ -166,18 +170,20 @@ bool distance_map_put(distance_map* map, size_t vertex_id, double distance)
         if (entry->vertex_id == vertex_id)
         {
             entry->distance = distance;
-            return true;
+            return RETURN_STATUS_OK;
         }
     }
 
-    ensure_capacity(map);
+    if (ensure_capacity(map) != RETURN_STATUS_OK) {
+        return RETURN_STATUS_NO_MEMORY;
+    }
 
     /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & map->mask;
     entry = distance_map_entry_alloc(vertex_id, distance);
 
     if (!entry) {
-        return false;
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     entry->chain_next = map->table[index];
@@ -197,7 +203,7 @@ bool distance_map_put(distance_map* map, size_t vertex_id, double distance)
     }
 
     map->size++;
-    return true;
+    return RETURN_STATUS_OK;
 }
 
 bool distance_map_contains_key(distance_map* map, size_t vertex_id)

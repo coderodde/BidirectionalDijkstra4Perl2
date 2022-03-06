@@ -22,7 +22,7 @@ extern "C" {
     * associates value with it and return NULL. Otherwise updates the value    *
     * and returns the old value.                                               *
     ***************************************************************************/
-    bool distance_map_put(distance_map* map, void* key, double value);
+    int distance_map_put(distance_map* map, void* key, double value);
 
     /***************************************************************************
     * Returns a positive value if p_key is mapped to some value in this map.   *

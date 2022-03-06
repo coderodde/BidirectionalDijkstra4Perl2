@@ -22,9 +22,9 @@ extern "C" {
     * associates value with it and return NULL. Otherwise updates the value    *
     * and returns the old value.                                               *
     ***************************************************************************/
-    bool parent_map_put(parent_map* map,
-                        size_t vertex_id,
-                        size_t predecessor_vertex_id);
+    int parent_map_put(parent_map* map,
+                       size_t vertex_id,
+                       size_t predecessor_vertex_id);
 
     /***************************************************************************
     * Returns the value associated with the p_key, or NULL if p_key is not     *

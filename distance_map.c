@@ -162,7 +162,7 @@ static void ensure_capacity(distance_map* map)
     map->max_allowed_size = (size_t)(new_capacity * map->load_factor);
 }
 
-bool unordered_map_put(distance_map* map, size_t vertex_id, double distance)
+bool distance_map_put(distance_map* map, size_t vertex_id, double distance)
 {
     size_t index;
     size_t hash_value;
@@ -266,7 +266,7 @@ double distance_map_get(distance_map* map, size_t vertex_id)
     return 0.0; /* Compiler, shut up! */
 }
 
-static void unordered_map_clear(distance_map* map)
+static void distance_map_clear(distance_map* map)
 {
     distance_map_entry* entry;
     distance_map_entry* next_entry;
@@ -294,7 +294,7 @@ static void unordered_map_clear(distance_map* map)
     map->tail = NULL;
 }
 
-void unordered_map_free(distance_map* map)
+void distance_map_free(distance_map* map)
 {
     if (!map)
     {

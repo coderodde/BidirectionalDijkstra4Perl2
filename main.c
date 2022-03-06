@@ -1,8 +1,10 @@
 #include "algorithm.h"
 #include "graph.h"
 #include "list.h"
+#include "vertex_set.h"
 #include <stdio.h>
 #include <stdlib.h>
+
 
 static const size_t NODES = 1000;
 static const size_t EDGES = 6000;
@@ -96,9 +98,19 @@ Graph* buildGraph() {
     return p_graph;
 }
 
+int equals(size_t a, size_t b) {
+    return a == b;
+}
+
+size_t hash(size_t a) {
+    return a;
+}
+
 int main(int argc, char* argv[])
 {
     Graph* p_graph = buildGraph();
+
+    vertex_set* pvs = vertex_set_alloc(10, 1.0f, hash, equals);
 
     testRemoveNode();
 

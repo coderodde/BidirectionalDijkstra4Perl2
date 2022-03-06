@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+    typedef struct vertex_set_entry vertex_set_entry;
     typedef struct vertex_set vertex_set;
 
     /***************************************************************************

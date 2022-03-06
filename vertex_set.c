@@ -206,7 +206,7 @@ bool vertex_set_add(vertex_set* set, size_t vertex_id)
     return true;
 }
 
-bool unordered_set_contains(vertex_set* set, size_t vertex_id)
+bool vertex_set_contains(vertex_set* set, size_t vertex_id)
 {
     size_t index;
     vertex_set_entry* p_entry;

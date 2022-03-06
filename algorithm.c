@@ -276,15 +276,8 @@ list* find_shortest_path(Graph* p_graph,
         if (p_touch_node_id) {
          
             temporary_path_length = 
-                (double) 
-                unordered_map_get(
-                    distance_forward,
-                    (size_t) fibonacci_heap_min(open_forward))
-                +
-                (double) 
-                unordered_map_get(
-                    distance_backward,
-                    (size_t) fibonacci_heap_min(open_backward));
+                distance_map_get(distance_forward, 1) +
+                distance_map_get(distance_backward, 2);
 
             if (temporary_path_length > best_path_length) {
                 return traceback_path(p_touch_node_id,

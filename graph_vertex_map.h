@@ -11,6 +11,7 @@ extern "C" {
 
     typedef struct graph_vertex_map graph_vertex_map;
     typedef struct graph_vertex_map_entry graph_vertex_map_entry;
+    typedef struct graph_vertex_map_iterator graph_vertex_map_iterator;
 
     /***************************************************************************
     * Allocates a new, empty map with given hash function and given equality   *
@@ -27,7 +28,7 @@ extern "C" {
     ***************************************************************************/
     int graph_vertex_map_put(graph_vertex_map* map,
                              size_t vertex_id, 
-                             GraphVertex*);
+                             GraphVertex* vertex);
 
     /***************************************************************************
     * Returns a positive value if p_key is mapped to some value in this map.   *
@@ -47,6 +48,30 @@ extern "C" {
     Clears entirely the distance map.
     *************************************************************************/
     void graph_vertex_map_free(graph_vertex_map* map);
+
+    graph_vertex_map_iterator* graph_vertex_map_iterator_alloc
+    (graph_vertex_map* map);
+
+    /***************************************************************************
+    * Returns the number of keys not yet iterated over.                        *
+    ***************************************************************************/
+    size_t graph_vertex_map_iterator_has_next
+    (graph_vertex_map_iterator* iterator);
+
+    /***************************************************************************
+    * Loads the next entry in the iteration order.                             *
+    ***************************************************************************/
+    int unordered_map_iterator_next(
+        graph_vertex_map_iterator* iterator,
+        size_t* key_pointer,
+        GraphVertex** value_pointer);
+
+    /***************************************************************************
+    * Deallocates the map iterator.                                            *
+    ***************************************************************************/
+    void graph_vertex_map_iterator_free(
+        graph_vertex_map_iterator* iterator);
+
 
 #ifdef	__cplusplus
 }

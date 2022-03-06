@@ -1,17 +1,5 @@
 #include "graph.h"
 
-static size_t hash_function(void* id)
-{
-	return id;
-}
-
-static bool equals_function(void* a, void* b)
-{
-	size_t sza = (size_t)a;
-	size_t szb = (size_t)b;
-	return sza == szb;
-}
-
 static const size_t initial_capacity = 1024;
 static const float load_factor = 1.3f;
 
@@ -41,11 +29,8 @@ void freeGraphVertex(GraphVertex* p_graph_vertex)
 void initGraph(Graph* p_graph)
 {
 	p_graph->p_nodes =
-		unordered_map_alloc(
-			initial_capacity,
-			load_factor,
-			hash_function,
-			equals_function);
+		graph_vertex_alloc(initial_capacity, 
+						   load_factor);
 }
 
 void freeGraph(Graph* p_graph)

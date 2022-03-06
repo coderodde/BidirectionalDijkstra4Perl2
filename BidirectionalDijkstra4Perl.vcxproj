@@ -153,6 +153,7 @@
     <ClInclude Include="list.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vertex_set.h" />
+    <ClInclude Include="weight_map.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="distance_map.c" />
@@ -166,6 +167,7 @@
     <ClCompile Include="algorithm.c" />
     <ClCompile Include="list.c" />
     <ClCompile Include="vertex_set.c" />
+    <ClCompile Include="weight_map.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

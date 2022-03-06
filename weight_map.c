@@ -1,36 +1,38 @@
-#include "graph_vertex_map.h"
+#include "unordered_map.h"
 #include "util.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
-typedef struct graph_vertex_map_entry {
-    size_t                  vertex_id;
-    GraphVertex*            vertex;
-    graph_vertex_map_entry* chain_next;
-    graph_vertex_map_entry* prev;
-    graph_vertex_map_entry* next;
-} graph_vertex_map_entry;
+typedef struct weight_map_entry {
+    size_t vertex_id;
+    double weight;
+    weight_map_entry* chain_next;
+    weight_map_entry* prev;
+    weight_map_entry* next;
+} weight_map_entry;
 
-typedef struct graph_vertex_map {
-    graph_vertex_map_entry** table;
-    graph_vertex_map_entry*  head;
-    graph_vertex_map_entry*  tail;
-    size_t                   table_capacity;
-    size_t                   size;
-    size_t                   max_allowed_size;
-    size_t                   mask;
-    float                    load_factor;
-} graph_vertex_map;
+typedef struct weight_map {
+    weight_map_entry** table;
+    weight_map_entry* head;
+    weight_map_entry* tail;
+    size_t            table_capacity;
+    size_t            size;
+    size_t            max_allowed_size;
+    size_t            mask;
+    float             load_factor;
+} weight_map;
 
-typedef struct graph_vertex_map_iterator {
-    graph_vertex_map*       map;
-    graph_vertex_map_entry* next_entry;
-    size_t                  iterated_count;
-} graph_vertex_map_iterator;
+typedef struct weight_map_iterator {
+    weight_map*       map;
+    weight_map_entry* next_entry;
+    size_t            iterated_count;
+} weight_map_iterator;
 
-static graph_vertex_map_entry*
-graph_vertex_map_entry_alloc(size_t vertex_id,
-                             GraphVertex* vertex)
+static weight_map_entry* 
+weight_map_entry_alloc(size_t vertex_id,
+                       double weight)
 {
-    graph_vertex_map_entry* entry = malloc(sizeof(*entry));
+    weight_map_entry* entry = malloc(sizeof(*entry));
 
     if (!entry)
     {
@@ -38,7 +40,7 @@ graph_vertex_map_entry_alloc(size_t vertex_id,
     }
 
     entry->vertex_id = vertex_id;
-    entry->vertex = vertex;
+    entry->weight = weight;
     entry->chain_next = NULL;
     entry->next = NULL;
     entry->prev = NULL;
@@ -86,10 +88,11 @@ static size_t fix_initial_capacity(size_t initial_capacity)
     return ret;
 }
 
-graph_vertex_map* graph_vertex_map_alloc(size_t initial_capacity,
-                                         float load_factor)
+weight_map* weight_map_alloc(
+    size_t initial_capacity,
+    float load_factor)
 {
-    graph_vertex_map* map = malloc(sizeof(*map));
+    weight_map* map = malloc(sizeof(*map));
 
     if (!map)
     {
@@ -105,7 +108,7 @@ graph_vertex_map* graph_vertex_map_alloc(size_t initial_capacity,
     map->head = NULL;
     map->tail = NULL;
     map->table = calloc(initial_capacity,
-                        sizeof(graph_vertex_map_entry*));
+                        sizeof(weight_map_entry*));
 
     map->mask = initial_capacity - 1;
     map->max_allowed_size = (size_t)(initial_capacity * load_factor);
@@ -113,13 +116,13 @@ graph_vertex_map* graph_vertex_map_alloc(size_t initial_capacity,
     return map;
 }
 
-static int ensure_capacity(graph_vertex_map* map)
+static int ensure_capacity(weight_map* map)
 {
     size_t new_capacity;
     size_t new_mask;
     size_t index;
-    graph_vertex_map_entry* entry;
-    graph_vertex_map_entry** new_table;
+    weight_map_entry* entry;
+    weight_map_entry** new_table;
 
     if (map->size < map->max_allowed_size)
     {
@@ -128,12 +131,11 @@ static int ensure_capacity(graph_vertex_map* map)
 
     new_capacity = 2 * map->table_capacity;
     new_mask = new_capacity - 1;
-    new_table = calloc(new_capacity, 
-                       sizeof(graph_vertex_map_entry*));
+    new_table = calloc(new_capacity, sizeof(weight_map_entry*));
 
     if (!new_table)
     {
-        return RETURN_STATUS_NO_MEMORY;
+        return RETURN_STATUS_NO_MAP;
     }
 
     /* Rehash the entries. */
@@ -150,17 +152,14 @@ static int ensure_capacity(graph_vertex_map* map)
     map->table_capacity = new_capacity;
     map->mask = new_mask;
     map->max_allowed_size = (size_t)(new_capacity * map->load_factor);
-
     return RETURN_STATUS_OK;
 }
 
-int graph_vertex_map_put(graph_vertex_map* map,
-                         size_t vertex_id,
-                         GraphVertex* vertex)
+int weight_map_put(weight_map* map, size_t vertex_id, double weight)
 {
     size_t index;
     size_t hash_value;
-    graph_vertex_map_entry* entry;
+    weight_map_entry* entry;
 
     if (!map)
     {
@@ -174,7 +173,7 @@ int graph_vertex_map_put(graph_vertex_map* map,
     {
         if (entry->vertex_id == vertex_id)
         {
-            entry->vertex = vertex;
+            entry->weight = weight;
             return RETURN_STATUS_OK;
         }
     }
@@ -183,15 +182,9 @@ int graph_vertex_map_put(graph_vertex_map* map,
         return RETURN_STATUS_NO_MEMORY;
     }
 
-    /* Recompute the index since it is possibly changed by
-       'ensure_capacity' */
+    /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & map->mask;
-    entry = graph_vertex_map_entry_alloc(vertex_id, vertex);
-
-    if (!entry) {
-        return RETURN_STATUS_NO_MEMORY;
-    }
-
+    entry = unordered_map_entry_alloc(vertex_id, weight);
     entry->chain_next = map->table[index];
     map->table[index] = entry;
 
@@ -209,13 +202,13 @@ int graph_vertex_map_put(graph_vertex_map* map,
     }
 
     map->size++;
-    return RETURN_STATUS_OK;
+    return NULL;
 }
 
-int graph_vertex_map_contains_key(graph_vertex_map* map, size_t vertex_id)
+int weight_map_contains_key(weight_map* map, size_t vertex_id)
 {
     size_t index;
-    graph_vertex_map_entry* entry;
+    weight_map_entry* entry;
 
     if (!map)
     {
@@ -226,7 +219,7 @@ int graph_vertex_map_contains_key(graph_vertex_map* map, size_t vertex_id)
 
     for (entry = map->table[index]; entry; entry = entry->chain_next)
     {
-        if (vertex_id == entry->vertex_id)
+        if (entry->vertex_id == vertex_id)
         {
             return 1;
         }
@@ -235,11 +228,10 @@ int graph_vertex_map_contains_key(graph_vertex_map* map, size_t vertex_id)
     return 0;
 }
 
-GraphVertex* graph_vertex_map_get(graph_vertex_map* map, 
-                                  size_t vertex_id)
+double weight_map_get(weight_map* map, size_t vertex_id)
 {
     size_t index;
-    graph_vertex_map_entry* p_entry;
+    weight_map_entry* p_entry;
 
     if (!map)
     {
@@ -250,37 +242,35 @@ GraphVertex* graph_vertex_map_get(graph_vertex_map* map,
 
     for (p_entry = map->table[index]; p_entry; p_entry = p_entry->chain_next)
     {
-        if (vertex_id == p_entry->vertex_id)
+        if (p_entry->vertex_id == vertex_id)
         {
-            return p_entry->vertex;
+            return p_entry->weight;
         }
     }
 
-    return NULL;
+    abort();
+    return -1.0;
 }
 
-int graph_vertex_map_remove(graph_vertex_map* map, 
-                            size_t vertex_id)
+void weight_map_remove(weight_map* map, size_t vertex_id)
 {
     size_t index;
-    graph_vertex_map_entry* prev_entry;
-    graph_vertex_map_entry* current_entry;
+    weight_map_entry* prev_entry;
+    weight_map_entry* current_entry;
 
     if (!map)
     {
-        return NULL;
+        return;
     }
 
     index = vertex_id & map->mask;
-
     prev_entry = NULL;
 
     for (current_entry = map->table[index];
         current_entry;
         current_entry = current_entry->chain_next)
     {
-        if (vertex_id, current_entry->vertex_id)
-        {
+        if (current_entry->vertex_id == vertex_id) {
             if (prev_entry)
             {
                 /* Omit the 'p_current_entry' in the collision chain. */
@@ -312,19 +302,17 @@ int graph_vertex_map_remove(graph_vertex_map* map,
 
             map->size--;
             free(current_entry);
-            return 1;
+            return;
         }
 
         prev_entry = current_entry;
     }
-
-    return 0;
 }
 
-static void graph_vertex_map_clear(graph_vertex_map* map)
+void weight_map_clear(weight_map* map)
 {
-    graph_vertex_map_entry* entry;
-    graph_vertex_map_entry* next_entry;
+    weight_map_entry* entry;
+    weight_map_entry* next_entry;
     size_t index;
 
     if (!map)
@@ -348,22 +336,31 @@ static void graph_vertex_map_clear(graph_vertex_map* map)
     map->tail = NULL;
 }
 
-void graph_vertex_map_free(graph_vertex_map* map)
+size_t weight_map_size(weight_map* map)
+{
+    if (!map) {
+        abort();
+    }
+
+    return map->size;
+}
+
+void weight_map_free(weight_map* map)
 {
     if (!map)
     {
         return;
     }
 
-    graph_vertex_map_clear(map);
+    weight_map_clear(map);
     free(map->table);
     free(map);
 }
 
-graph_vertex_map_iterator*
-graph_vertex_map_iterator_alloc(graph_vertex_map* map)
+weight_map_iterator*
+weight_map_iterator_alloc(weight_map* map)
 {
-    graph_vertex_map_iterator* p_ret;
+    weight_map_iterator* p_ret;
 
     if (!map)
     {
@@ -380,18 +377,13 @@ graph_vertex_map_iterator_alloc(graph_vertex_map* map)
     p_ret->map = map;
     p_ret->iterated_count = 0;
     p_ret->next_entry = map->head;
+
     return p_ret;
 }
 
-size_t graph_vertex_map_iterator_has_next(
-    graph_vertex_map_iterator* iterator)
+size_t weight_map_iterator_has_next(weight_map_iterator* iterator)
 {
     if (!iterator)
-    {
-        return 0;
-    }
-
-    if (unordered_map_iterator_is_disturbed(iterator))
     {
         return 0;
     }
@@ -399,35 +391,24 @@ size_t graph_vertex_map_iterator_has_next(
     return iterator->map->size - iterator->iterated_count;
 }
 
-bool graph_vertex_map_iterator_next(graph_vertex_map_iterator* iterator,
-    size_t* vertex_id_pointer,
-    GraphVertex** vertex_pointer)
+int weight_map_iterator_next(weight_map_iterator* iterator,
+                              size_t* vertex_id_pointer,
+                              double* weight_pointer)
 {
-    if (!iterator)
+    if (!iterator || !iterator->next_entry)
     {
-        return false;
-    }
-
-    if (!iterator->next_entry)
-    {
-        return false;
-    }
-
-    if (unordered_map_iterator_is_disturbed(iterator))
-    {
-        return false;
+        return 0;
     }
 
     *vertex_id_pointer = iterator->next_entry->vertex_id;
-    *vertex_pointer = iterator->next_entry->vertex;
-
+    *weight_pointer = iterator->next_entry->weight;
     iterator->iterated_count++;
     iterator->next_entry = iterator->next_entry->next;
 
     return true;
 }
 
-void graph_vertex_map_iterator_free(graph_vertex_map_iterator* iterator)
+void unordered_map_iterator_free(weight_map_iterator* iterator)
 {
     if (!iterator)
     {

@@ -1,6 +1,7 @@
 #ifndef COM_GITHUB_CODERODDE_PERL_GRAPH_H
 #define COM_GITHUB_CODERODDE_PERL_GRAPH_H
 
+#include "graph_vertex_map.h"
 #include "unordered_map.h"
 
 typedef struct GraphVertex {
@@ -11,7 +12,7 @@ typedef struct GraphVertex {
 
 typedef struct Graph {
 	// Maps each node ID to a vertex:
-	unordered_map* p_nodes;
+	graph_vertex_map* p_nodes;
 } Graph;
 
 void initGraphVertex(GraphVertex* p_graph_vertex, size_t id);

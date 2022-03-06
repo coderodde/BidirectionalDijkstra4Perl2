@@ -48,6 +48,9 @@
     <ClInclude Include="graph_vertex_map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="weight_map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="unordered_map.c">
@@ -81,6 +84,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="graph_vertex_map.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="weight_map.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

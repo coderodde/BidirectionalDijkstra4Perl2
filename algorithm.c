@@ -117,8 +117,8 @@ static void search_state_free(search_state* p_search_state) {
 }
 
 static list* traceback_path(size_t* p_touch_vertex,
-                            unordered_map* parent_forward,
-                            unordered_map* parent_backward) {
+                            parent_map* parent_forward,
+                            parent_map* parent_backward) {
 
     list* path = list_alloc(100);
     size_t* p_current_vertex = p_touch_vertex;

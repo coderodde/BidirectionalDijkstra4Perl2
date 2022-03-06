@@ -77,9 +77,9 @@ extern "C" {
     /***************************************************************************
     * Loads the next entry in the iteration order.                             *
     ***************************************************************************/
-    bool weight_map_iterator_next(weight_map_iterator* iterator,
-                                  size_t* vertex_id_pointer,
-                                  double* weight_pointer);
+    int weight_map_iterator_next(weight_map_iterator* iterator,
+                                 size_t* vertex_id_pointer,
+                                 double* weight_pointer);
 
     /***************************************************************************
     * Deallocates the map iterator.                                            *

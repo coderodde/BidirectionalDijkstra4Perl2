@@ -1,11 +1,13 @@
-#include "unordered_map.h"
+#include "weight_map.h"
 #include "util.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
+//typedef struct weight_map_entry weight_map_entry;
+
 typedef struct weight_map_entry {
-    size_t vertex_id;
-    double weight;
+    size_t            vertex_id;
+    double            weight;
     weight_map_entry* chain_next;
     weight_map_entry* prev;
     weight_map_entry* next;
@@ -392,8 +394,8 @@ size_t weight_map_iterator_has_next(weight_map_iterator* iterator)
 }
 
 int weight_map_iterator_next(weight_map_iterator* iterator,
-                              size_t* vertex_id_pointer,
-                              double* weight_pointer)
+                             size_t* vertex_id_pointer,
+                             double* weight_pointer)
 {
     if (!iterator || !iterator->next_entry)
     {

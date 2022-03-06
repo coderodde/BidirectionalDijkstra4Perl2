@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+    typedef struct GraphVertex GraphVertex;
     typedef struct graph_vertex_map graph_vertex_map;
     typedef struct graph_vertex_map_entry graph_vertex_map_entry;
     typedef struct graph_vertex_map_iterator graph_vertex_map_iterator;

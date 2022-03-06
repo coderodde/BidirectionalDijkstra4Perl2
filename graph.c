@@ -2,6 +2,17 @@
 #include "graph_vertex_map.h"
 #include "weight_map.h"
 
+/*typedef struct GraphVertex {
+	size_t id;
+	weight_map* p_children; // Maps a child to the edge weight.
+	weight_map* p_parents;  // Maps a parent to the edge weight.
+} GraphVertex;
+
+typedef struct Graph {
+	// Maps each node ID to a vertex:
+	graph_vertex_map* p_nodes;
+} Graph;
+*/
 static const size_t initial_capacity = 1024;
 static const float load_factor = 1.3f;
 

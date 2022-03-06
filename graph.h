@@ -4,6 +4,9 @@
 #include "graph_vertex_map.h"
 #include "weight_map.h"
 
+typedef struct GraphVertex GraphVertex;
+typedef struct Graph Graph;
+
 typedef struct GraphVertex {
 	size_t id;
 	weight_map* p_children; // Maps a child to the edge weight.
@@ -12,8 +15,9 @@ typedef struct GraphVertex {
 
 typedef struct Graph {
 	// Maps each node ID to a vertex:
-	graph_vertex_map* p_nodes;
+	struct graph_vertex_map* p_nodes;
 } Graph;
+
 
 void initGraphVertex(GraphVertex* p_graph_vertex, size_t id);
 void freeGraphVertex(GraphVertex* p_graph_vertex);

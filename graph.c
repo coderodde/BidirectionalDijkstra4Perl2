@@ -126,7 +126,13 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 	{
 		weight_map_iterator_visit(p_child_iterator, &child_vertex_id);
 		weight_map_iterator_remove(p_child_iterator);
-		weight_map_remove(p_graph_vertex->p_parents, child_vertex_id);
+
+		/* Grab the weight map from child_vertex_id: */
+		p_child_vertex = graph_vertex_map_get(p_graph->p_nodes,
+											  child_vertex_id);
+
+		weight_map_remove(p_child_vertex->p_parents,
+					      p_graph_vertex->id);
 	}
 
 	p_parent_iterator =
@@ -137,7 +143,12 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 	{
 		weight_map_iterator_visit(p_parent_iterator, &parent_vertex_id);
 		weight_map_iterator_remove(p_parent_iterator);
-		weight_map_remove(p_graph_vertex->p_children, parent_vertex_id);
+
+		p_parent_vertex = graph_vertex_map_get(p_graph->p_nodes, 
+									    	   parent_vertex_id);
+
+		weight_map_remove(p_parent_vertex->p_children,
+						  p_graph_vertex->id);
 	}
 
 	graph_vertex_map_remove(p_graph->p_nodes, vertex_id);

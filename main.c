@@ -18,7 +18,12 @@ static void testRemoveNode()
 {
     Graph* graph = allocGraph();
 
-    puts("--- testRemoveNode() begin.");;
+    puts("--- testRemoveNode() begin.");
+    /*
+    addEdge(graph, 0, 1, 1.0);
+    addEdge(graph, 1, 2, 2.0);
+
+    removeVertex(graph, 1);*/
 
     addEdge(graph, 1, 2, 1.0);
     addEdge(graph, 2, 3, 2.0);

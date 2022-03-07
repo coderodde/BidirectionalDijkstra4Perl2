@@ -86,6 +86,9 @@ extern "C" {
     ***************************************************************************/
     void weight_map_iterator_free(weight_map_iterator* iterator);
 
+    void weight_map_iterator_visit(weight_map_iterator* p_iterator,
+                                   size_t* p_vertex_id);
+
     void weight_map_iterator_remove(weight_map_iterator* p_iterator);
 
 #ifdef	__cplusplus

@@ -23,8 +23,8 @@ typedef struct weight_map {
 } weight_map;
 
 typedef struct weight_map_iterator {
-    weight_map* map;
-    weight_map_entry* next_entry;
+    weight_map*       map;
+    weight_map_entry* entry;
 } weight_map_iterator;
 
 static weight_map_entry* 
@@ -379,30 +379,24 @@ weight_map_iterator_alloc(weight_map* map)
     }
 
     p_ret->map = map;
-    p_ret->next_entry = map->head;
+    p_ret->entry = map->head;
 
     return p_ret;
 }
 
 int weight_map_iterator_has_next(weight_map_iterator* iterator)
 {
-    return iterator && iterator->next_entry;
+    return iterator && iterator->entry;
 }
 
-int weight_map_iterator_next(weight_map_iterator* iterator,
-                             size_t* vertex_id_pointer,
-                             double* weight_pointer)
+int weight_map_iterator_next(weight_map_iterator* iterator)
 {
-    if (!iterator || !iterator->next_entry)
+    if (!iterator || !iterator->entry)
     {
         return 0;
     }
 
-    *vertex_id_pointer = iterator->next_entry->vertex_id;
-    *weight_pointer = iterator->next_entry->weight;
-    iterator->next_entry = iterator->next_entry->next;
-
-    return 1;
+    return iterator->entry != NULL;
 }
 
 void weight_map_iterator_free(weight_map_iterator* iterator)
@@ -413,16 +407,21 @@ void weight_map_iterator_free(weight_map_iterator* iterator)
     }
 
     iterator->map = NULL;
-    iterator->next_entry = NULL;
+    iterator->entry = NULL;
     free(iterator);
+}
+
+void weight_map_iterator_visit(weight_map_iterator* p_iterator,
+                               size_t* p_vertex_id) {
+    *p_vertex_id = p_iterator->entry->vertex_id;
 }
 
 void weight_map_iterator_remove(
     weight_map_iterator* p_iterator) {
-    weight_map_entry* p_next_entry = p_iterator->next_entry->next;
+    weight_map_entry* p_next_entry = p_iterator->entry->next;
 
     weight_map_remove(p_iterator->map,
-                      p_iterator->next_entry->vertex_id);
+                      p_iterator->entry->vertex_id);
 
-    p_iterator->next_entry = p_next_entry;
+    p_iterator->entry = p_next_entry;
 }

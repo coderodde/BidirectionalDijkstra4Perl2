@@ -107,6 +107,9 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 	weight_map_iterator* p_child_iterator;
 	weight_map_iterator* p_parent_iterator;
 
+	weight_map* p_children;
+	weight_map* p_parents;
+
 	double* p_weight;
 
 	p_graph_vertex = graph_vertex_map_get(p_graph->p_nodes, vertex_id);
@@ -121,13 +124,8 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 	// Disconnect from children:
 	while (weight_map_iterator_has_next(p_child_iterator))
 	{
+		weight_map_iterator_visit(p_child_iterator, &child_vertex_id);
 		weight_map_iterator_remove(p_child_iterator);
-
-		weight_map_iterator_next(
-			p_child_iterator,
-			&child_vertex_id,
-			&p_weight);
-
 		weight_map_remove(p_graph_vertex->p_parents, child_vertex_id);
 	}
 
@@ -137,13 +135,8 @@ void removeVertex(Graph* p_graph, size_t vertex_id)
 	// Disconnect from parents:
 	while (weight_map_iterator_has_next(p_parent_iterator))
 	{
+		weight_map_iterator_visit(p_parent_iterator, &parent_vertex_id);
 		weight_map_iterator_remove(p_parent_iterator);
-
-		weight_map_iterator_next(
-		    p_parent_iterator,
-			&parent_vertex_id,
-			&p_weight);
-
 		weight_map_remove(p_graph_vertex->p_children, parent_vertex_id);
 	}
 

@@ -419,10 +419,7 @@ void weight_map_iterator_free(weight_map_iterator* iterator)
 
 void weight_map_iterator_remove(
     weight_map_iterator* p_iterator) {
-    weight_map_entry* p_next_entry = p_iterator->next_entry->next;
 
     weight_map_remove(p_iterator->map,
                       p_iterator->next_entry->vertex_id);
-
-    p_iterator->next_entry = p_next_entry;
 }

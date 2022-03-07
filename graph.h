@@ -29,7 +29,7 @@ void removeVertex      (Graph* p_graph, size_t vertex_id);
 int hasVertex          (Graph* p_graph, size_t vertex_id);
 GraphVertex* getVertex (Graph* p_graph, size_t vertex_id);
 
-void addEdge(
+int addEdge(
     Graph* p_graph,
 	size_t tail_vertex_id,
 	size_t head_vertex_id,

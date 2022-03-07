@@ -20,37 +20,37 @@ static void testRemoveNode()
 
     puts("--- testRemoveNode() begin.");;
 
-    addEdge(&graph, 1, 2, 1.0);
-    addEdge(&graph, 2, 3, 2.0);
-    addEdge(&graph, 3, 1, 3.0);
+    addEdge(graph, 1, 2, 1.0);
+    addEdge(graph, 2, 3, 2.0);
+    addEdge(graph, 3, 1, 3.0);
 
-    removeVertex(&graph, 3);
+    removeVertex(graph, 3);
 
-    if (hasEdge(&graph, 2, 3))
+    if (hasEdge(graph, 2, 3))
     {
         puts("Test 1 failed.");
         abort();
     }
 
-    if (hasEdge(&graph, 3, 1))
+    if (hasEdge(graph, 3, 1))
     {
         puts("Test 2 failed.");
         abort();
     }
 
-    if (!hasEdge(&graph, 1, 2))
+    if (!hasEdge(graph, 1, 2))
+    {
+        puts("Test 3 failed.");
+        abort();
+    }
+
+    if (getEdgeWeight(graph, 1, 2) != 1.0)
     {
         puts("Test 4 failed.");
         abort();
     }
 
-    if (getEdgeWeight(&graph, 1, 2) != 1.0)
-    {
-        puts("Test 5 failed.");
-        abort();
-    }
-
-    freeGraph(&graph);
+    freeGraph(graph);
     puts("--- testRemoveNode() passed.");
 }
 
@@ -119,12 +119,12 @@ size_t hash(size_t a) {
 
 int main(int argc, char* argv[])
 {
-    Graph* p_graph = buildGraph();
+    // Graph* p_graph = buildGraph();
 
-    vertex_set* pvs = vertex_set_alloc(10, 1.0f, hash, equals);
+    // vertex_set* pvs = vertex_set_alloc(10, 1.0f, hash, equals);
 
     testRemoveNode();
 
-    freeGraph(p_graph);
+    // freeGraph(p_graph);
     return 0;
 }

@@ -13,8 +13,6 @@ typedef struct vertex_set {
     vertex_set_entry** table;
     vertex_set_entry* head;
     vertex_set_entry* tail;
-    size_t (*hash_function)(void*);
-    bool   (*equals_function)(void*, void*);
     size_t mod_count;
     size_t table_capacity;
     size_t size;
@@ -133,7 +131,7 @@ static void ensure_capacity(vertex_set* set)
     /* Rehash the entries. */
     for (entry = set->head; entry; entry = entry->next)
     {
-        index = set->hash_function(entry->vertex_id) & new_mask;
+        index = entry->vertex_id & new_mask;
         entry->chain_next = new_table[index];
         new_table[index] = entry;
     }
@@ -157,12 +155,12 @@ bool vertex_set_add(vertex_set* set, size_t vertex_id)
         return NULL;
     }
 
-    hash_value = set->hash_function(vertex_id);
+    hash_value = vertex_id;
     index = hash_value & set->mask;
 
     for (entry = set->table[index]; entry; entry = entry->chain_next)
     {
-        if (set->equals_function(entry->vertex_id, vertex_id))
+        if (entry->vertex_id, vertex_id)
         {
             return false;
         }
@@ -205,17 +203,21 @@ bool vertex_set_contains(vertex_set* set, size_t vertex_id)
         return false;
     }
 
-    index = set->hash_function(vertex_id) & set->mask;
+    index = vertex_id & set->mask;
 
     for (p_entry = set->table[index]; p_entry; p_entry = p_entry->chain_next)
     {
-        if (set->equals_function(vertex_id, p_entry->vertex_id))
+        if (vertex_id == p_entry->vertex_id)
         {
             return true;
         }
     }
 
     return false;
+}
+
+size_t vertex_set_size(vertex_set* p_set) {
+    return p_set->size;
 }
 
 static void vertex_set_clear(vertex_set* set)
@@ -233,7 +235,7 @@ static void vertex_set_clear(vertex_set* set)
 
     while (entry)
     {
-        index = set->hash_function(entry->vertex_id) & set->mask;
+        index = entry->vertex_id & set->mask;
         next_entry = entry->next;
         free(entry);
         entry = next_entry;

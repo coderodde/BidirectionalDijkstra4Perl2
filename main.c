@@ -8,7 +8,7 @@
 
 static size_t milliseconds()
 {
-    return (size_t)(clock() / (CLOCKS_PER_SEC / 1000));
+    return (size_t)(1000* clock() / CLOCKS_PER_SEC);
 }
 
 static const size_t NODES = 100 * 1000;
@@ -124,12 +124,12 @@ size_t hash(size_t a) {
 
 int main(int argc, char* argv[])
 {
-    // Graph* p_graph = buildGraph();
+    Graph* p_graph = buildGraph();
 
     // vertex_set* pvs = vertex_set_alloc(10, 1.0f, hash, equals);
 
     testRemoveNode();
 
-    // freeGraph(p_graph);
+    freeGraph(p_graph);
     return 0;
 }

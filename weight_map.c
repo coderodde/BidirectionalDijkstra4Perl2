@@ -391,12 +391,7 @@ int weight_map_iterator_has_next(weight_map_iterator* iterator)
 
 int weight_map_iterator_next(weight_map_iterator* iterator)
 {
-    if (!iterator || !iterator->entry)
-    {
-        return 0;
-    }
-
-    return iterator->entry != NULL;
+    iterator->entry = iterator->entry->next;
 }
 
 void weight_map_iterator_free(weight_map_iterator* iterator)

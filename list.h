@@ -1,5 +1,5 @@
-#ifndef LIST_H
-#define	LIST_H
+#ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_LIST_H
+#define	COM_GITHUB_CODERODDE_BIDIR_SEARCH_LIST_H
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -97,4 +97,4 @@ extern "C" {
 }
 #endif
 
-#endif	/* LIST_H */
+#endif	/* COM_GITHUB_CODERODDE_BIDIR_SEARCH_LIST_H */

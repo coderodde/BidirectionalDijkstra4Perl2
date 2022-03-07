@@ -1,32 +1,7 @@
 #include "graph_vertex_map.h"
 #include "util.h"
 
-typedef struct graph_vertex_map_entry {
-    size_t                  vertex_id;
-    GraphVertex*            vertex;
-    graph_vertex_map_entry* chain_next;
-    graph_vertex_map_entry* prev;
-    graph_vertex_map_entry* next;
-} graph_vertex_map_entry;
-
-typedef struct graph_vertex_map {
-    graph_vertex_map_entry** table;
-    graph_vertex_map_entry*  head;
-    graph_vertex_map_entry*  tail;
-    size_t                   table_capacity;
-    size_t                   size;
-    size_t                   max_allowed_size;
-    size_t                   mask;
-    float                    load_factor;
-} graph_vertex_map;
-
-typedef struct graph_vertex_map_iterator {
-    graph_vertex_map*       map;
-    graph_vertex_map_entry* next_entry;
-    size_t                  iterated_count;
-} graph_vertex_map_iterator;
-
-static graph_vertex_map_entry*
+graph_vertex_map_entry*
 graph_vertex_map_entry_alloc(size_t vertex_id,
                              GraphVertex* vertex)
 {
@@ -243,7 +218,7 @@ GraphVertex* graph_vertex_map_get(graph_vertex_map* map,
 
     if (!map)
     {
-        abort();
+        return NULL;
     }
 
     index = vertex_id & map->mask;

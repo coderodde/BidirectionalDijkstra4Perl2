@@ -8,8 +8,8 @@
 extern "C" {
 #endif
 
-    typedef struct weight_map weight_map;
     typedef struct weight_map_entry weight_map_entry;
+    typedef struct weight_map weight_map;
     typedef struct weight_map_iterator weight_map_iterator;
 
     /***************************************************************************

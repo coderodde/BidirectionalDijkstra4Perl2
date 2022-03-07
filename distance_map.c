@@ -3,25 +3,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct distance_map_entry {
-    size_t vertex_id;
-    double distance;
-    distance_map_entry* chain_next;
-    distance_map_entry* prev;
-    distance_map_entry* next;
-} distance_map_entry;
-
-typedef struct distance_map {
-    distance_map_entry** table;
-    distance_map_entry* head;
-    distance_map_entry* tail;
-    size_t              table_capacity;
-    size_t              size;
-    size_t              max_allowed_size;
-    size_t              mask;
-    float               load_factor;
-} distance_map;
-
 static distance_map_entry* 
 distance_map_entry_alloc(size_t vertex_id,
                          double distance)
@@ -206,14 +187,15 @@ int distance_map_put(distance_map* map,
     return RETURN_STATUS_OK;
 }
 
-bool distance_map_contains_key(distance_map* map, size_t vertex_id)
+int distance_map_contains_vertex_id(distance_map* map,
+                                    size_t vertex_id)
 {
     size_t index;
     distance_map_entry* entry;
 
     if (!map)
     {
-        return false;
+        return 0;
     }
 
     index = vertex_id & map->mask;
@@ -222,11 +204,11 @@ bool distance_map_contains_key(distance_map* map, size_t vertex_id)
     {
         if (vertex_id == entry->vertex_id)
         {
-            return true;
+            return 1;
         }
     }
 
-    return false;
+    return 0;
 }
 
 double distance_map_get(distance_map* map, size_t vertex_id)

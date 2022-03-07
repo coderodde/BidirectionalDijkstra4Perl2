@@ -23,7 +23,7 @@ typedef struct weight_map {
 } weight_map;
 
 typedef struct weight_map_iterator {
-    weight_map*       map;
+    weight_map* map;
     weight_map_entry* next_entry;
     size_t            iterated_count;
 } weight_map_iterator;
@@ -405,10 +405,10 @@ int weight_map_iterator_next(weight_map_iterator* iterator,
     iterator->iterated_count++;
     iterator->next_entry = iterator->next_entry->next;
 
-    return true;
+    return 1;
 }
 
-void unordered_map_iterator_free(weight_map_iterator* iterator)
+void weight_map_iterator_free(weight_map_iterator* iterator)
 {
     if (!iterator)
     {

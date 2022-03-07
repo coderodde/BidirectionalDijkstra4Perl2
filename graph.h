@@ -1,11 +1,9 @@
-#ifndef COM_GITHUB_CODERODDE_PERL_GRAPH_H
-#define COM_GITHUB_CODERODDE_PERL_GRAPH_H
+#ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_GRAPH_H
+#define COM_GITHUB_CODERODDE_BIDIR_SEARCH_GRAPH_H
 
 #include "graph_vertex_map.h"
 #include "weight_map.h"
-
-typedef struct GraphVertex GraphVertex;
-typedef struct Graph Graph;
+#include <stdlib.h>
 
 typedef struct GraphVertex {
 	size_t id;
@@ -18,9 +16,10 @@ typedef struct Graph {
 	struct graph_vertex_map* p_nodes;
 } Graph;
 
-
 void initGraphVertex(GraphVertex* p_graph_vertex, size_t id);
 void freeGraphVertex(GraphVertex* p_graph_vertex);
+
+Graph* allocGraph();
 
 void initGraph(Graph* p_graph);
 void freeGraph(Graph* p_graph);
@@ -48,4 +47,4 @@ double getEdgeWeight(Graph* p_graph,
 					 size_t tail_vertex_id, 
 					 size_t head_vertex_id);
 
-#endif // COM_GITHUB_CODERODDE_PERL_GRAPH_H
+#endif /* COM_GITHUB_CODERODDE_BIDIR_SEARCH_GRAPH_H */

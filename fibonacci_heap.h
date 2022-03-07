@@ -1,5 +1,5 @@
-#ifndef FIBONACCI_HEAP_H
-#define	FIBONACCI_HEAP_H
+#ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_FIBONACCI_HEAP_H
+#define	COM_GITHUB_CODERODDE_BIDIR_SEARCH_FIBONACCI_HEAP_H
 
 #include "util.h"
 #include <stdbool.h>
@@ -75,4 +75,4 @@ extern "C" {
 }
 #endif
 
-#endif	/* FIBONACCI_HEAP_H */
+#endif	/* COM_GITHUB_CODERODDE_BIDIR_SEARCH_FIBONACCI_HEAP_H */

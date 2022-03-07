@@ -5,14 +5,31 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+typedef struct graph_vertex_map_entry {
+    size_t                         vertex_id;
+    struct GraphVertex*            vertex;
+    struct graph_vertex_map_entry* chain_next;
+    struct graph_vertex_map_entry* prev;
+    struct graph_vertex_map_entry* next;
+} graph_vertex_map_entry;
 
-    typedef struct GraphVertex GraphVertex;
-    typedef struct graph_vertex_map graph_vertex_map;
-    typedef struct graph_vertex_map_entry graph_vertex_map_entry;
-    typedef struct graph_vertex_map_iterator graph_vertex_map_iterator;
+typedef struct graph_vertex_map {
+    graph_vertex_map_entry** table;
+    graph_vertex_map_entry* head;
+    graph_vertex_map_entry* tail;
+    size_t                   table_capacity;
+    size_t                   size;
+    size_t                   max_allowed_size;
+    size_t                   mask;
+    float                    load_factor;
+} graph_vertex_map;
+
+typedef struct graph_vertex_map_iterator {
+    graph_vertex_map*       map;
+    graph_vertex_map_entry* next_entry;
+    size_t                  iterated_count;
+} graph_vertex_map_iterator;
+
 
     /***************************************************************************
     * Allocates a new, empty map with given hash function and given equality   *
@@ -29,7 +46,7 @@ extern "C" {
     ***************************************************************************/
     int graph_vertex_map_put(graph_vertex_map* map,
                              size_t vertex_id, 
-                             GraphVertex* vertex);
+                             struct GraphVertex* vertex);
 
     /***************************************************************************
     * Returns a positive value if p_key is mapped to some value in this map.   *
@@ -40,8 +57,8 @@ extern "C" {
     * Returns the value associated with the p_key, or NULL if p_key is not     *
     * mapped in the map.                                                       *
     ***************************************************************************/
-    GraphVertex* graph_vertex_map_get(graph_vertex_map * map, 
-                                      size_t vertex_id);
+    struct GraphVertex* graph_vertex_map_get(graph_vertex_map * map, 
+                                             size_t vertex_id);
 
     int graph_vertex_map_remove(graph_vertex_map* map, size_t vertex_id);
 
@@ -65,17 +82,12 @@ extern "C" {
     int unordered_map_iterator_next(
         graph_vertex_map_iterator* iterator,
         size_t* key_pointer,
-        GraphVertex** value_pointer);
+        struct GraphVertex** value_pointer);
 
     /***************************************************************************
     * Deallocates the map iterator.                                            *
     ***************************************************************************/
     void graph_vertex_map_iterator_free(
         graph_vertex_map_iterator* iterator);
-
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H */

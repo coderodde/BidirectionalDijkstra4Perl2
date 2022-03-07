@@ -16,8 +16,7 @@ static const size_t EDGES = 500 * 1000;
 
 static void testRemoveNode()
 {
-    Graph graph;
-    initGraph(&graph);
+    Graph* graph = allocGraph();
 
     puts("--- testRemoveNode() begin.");;
 
@@ -63,7 +62,7 @@ double randfrom(double min, double max)
 }
 
 Graph* buildGraph() {
-    Graph* p_graph = malloc(sizeof(Graph));
+    Graph* p_graph = allocGraph();
     size_t id1;
     size_t id2;
     double weight;

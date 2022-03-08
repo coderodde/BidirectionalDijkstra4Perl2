@@ -6,13 +6,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-static size_t milliseconds()
+static clock_t milliseconds()
 {
-    return (size_t)(1000* clock() / CLOCKS_PER_SEC);
+    return clock() / (CLOCKS_PER_SEC / 1000);
 }
 
-static const size_t NODES = 10;
-static const size_t EDGES = 40;
+static const size_t NODES = 100 * 1000;
+static const size_t EDGES = 500 * 1000;
 
 static void testRemoveNode()
 {
@@ -61,28 +61,42 @@ double randfrom(double min, double max)
     return min + (rand() / div);
 }
 
-Graph* buildGraph() {
-    Graph* p_graph = allocGraph();
-    list* path;
-    int return_status = -1;
+size_t intrand() {
+    size_t a = rand();
+    size_t b = rand();
+    return ((a << 15) | b);
+}
 
-    addEdge(p_graph, 0, 1, 1.0);
-    addEdge(p_graph, 1, 2, 2.0);
+double get_path_length(list* path,
+                       Graph* graph) {
+    size_t i;
+    size_t vertex_id_1;
+    size_t vertex_id_2;
+    double length = 0.0;
 
-    path = find_shortest_path(p_graph, 0, 2, &return_status);
+    for (i = 0; i < list_size(path) - 1; ++i) {
+        vertex_id_1 = list_get(path, i);
+        vertex_id_2 = list_get(path, i + 1);
 
-    for (size_t i = 0; i < list_size(path); ++i) {
-        printf("%zu\n", list_get(path, i));
+        length += getEdgeWeight(graph, 
+                                vertex_id_1, 
+                                vertex_id_2);
     }
 
-    /*
+    return length;
+}
+
+Graph* buildGraph() {
+    Graph* p_graph = allocGraph();
+
+    size_t i;
     size_t id1;
     size_t id2;
     double weight;
     size_t source_vertex_id;
     size_t target_vertex_id;
-    size_t milliseconds_a;
-    size_t milliseconds_b;
+    clock_t milliseconds_a;
+    clock_t milliseconds_b;
     list* path;
 
     initGraph(p_graph);
@@ -93,8 +107,8 @@ Graph* buildGraph() {
 
     for (size_t edge = 0; edge < EDGES; ++edge)
     {
-        id1 = rand() % NODES;
-        id2 = rand() % NODES;
+        id1 = intrand() % NODES;
+        id2 = intrand() % NODES;
         weight = randfrom(0.0, 10.0);
         addEdge(p_graph, id1, id2, weight);
 
@@ -112,22 +126,24 @@ Graph* buildGraph() {
 
     int result_status = 0;
 
+    milliseconds_a = milliseconds();
     path = find_shortest_path(p_graph,
                               source_vertex_id,
                               target_vertex_id,
                               &result_status);
 
-    printf("%d\n", result_status);
-    */
+    milliseconds_b = milliseconds();
+
+    for (i = 0; i < list_size(path); ++i) {
+        printf("%zu\n", list_get(path, i));
+    }
+
+    printf("Path length: %f\n", get_path_length(path, p_graph));
+    printf("Duration: %d milliseconds.\n",
+           (milliseconds_b - milliseconds_a));
+
+    printf("Result status: %d\n", result_status);
     return p_graph;
-}
-
-int equals(size_t a, size_t b) {
-    return a == b;
-}
-
-size_t hash(size_t a) {
-    return a;
 }
 
 int main(int argc, char* argv[])

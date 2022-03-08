@@ -117,24 +117,25 @@ static void search_state_free(search_state* p_search_state) {
     }
 }
 
-static list* traceback_path(size_t* p_touch_vertex_id,
+static list* traceback_path(size_t touch_vertex_id,
                             parent_map* parent_forward,
                             parent_map* parent_backward) {
 
     list* path = list_alloc(100);
-    size_t vertex_id = *p_touch_vertex_id;
-    size_t previous_vertex_id = parent_map_get(parent_forward, vertex_id);
+    size_t vertex_id = touch_vertex_id;
+    size_t previous_vertex_id = parent_map_get(parent_forward, 
+                                               touch_vertex_id);
 
-    while (previous_vertex_id != vertex_id) {
+    while (vertex_id != previous_vertex_id) {
         list_push_front(path, vertex_id);
         previous_vertex_id = vertex_id;
         vertex_id = parent_map_get(parent_forward, vertex_id);
     }
 
-    previous_vertex_id = vertex_id;
-    vertex_id = parent_map_get(parent_backward, *p_touch_vertex_id);
+    vertex_id = parent_map_get(parent_backward, touch_vertex_id);
+    previous_vertex_id = touch_vertex_id;
 
-    while (previous_vertex_id != vertex_id) {
+    while (vertex_id != previous_vertex_id) {
         list_push_back(path, vertex_id);
         previous_vertex_id = vertex_id;
         vertex_id = parent_map_get(parent_backward, vertex_id);
@@ -277,7 +278,7 @@ list* find_shortest_path(Graph* p_graph,
                     fibonacci_heap_min(p_open_backward));
 
             if (temporary_path_length > best_path_length) {
-                p_path = traceback_path(p_touch_vertex_id,
+                p_path = traceback_path(*p_touch_vertex_id,
                                         p_parent_forward,
                                         p_parent_backward);
                 CLEAN_SEARCH_STATE;

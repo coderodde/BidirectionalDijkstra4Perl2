@@ -208,7 +208,7 @@ size_t parent_map_get(parent_map* map, size_t vertex_id)
     }
 
     abort();
-    return 0.0; /* Compiler, shut up! */
+    return 0; /* Compiler, shut up! */
 }
 
 static void parent_map_clear(parent_map* map)

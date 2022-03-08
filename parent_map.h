@@ -47,7 +47,7 @@ extern "C" {
     * Returns the value associated with the p_key, or NULL if p_key is not     *
     * mapped in the map.                                                       *
     ***************************************************************************/
-    double parent_map_get(parent_map* map, size_t vertex_id);
+    size_t parent_map_get(parent_map* map, size_t vertex_id);
 
     /*************************************************************************
     Clears entirely the distance map.

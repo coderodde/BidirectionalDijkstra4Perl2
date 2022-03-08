@@ -77,9 +77,7 @@ extern "C" {
     /***************************************************************************
     * Loads the next entry in the iteration order.                             *
     ***************************************************************************/
-    int weight_map_iterator_next(weight_map_iterator* iterator,
-                                 size_t* vertex_id_pointer,
-                                 double* weight_pointer);
+    int weight_map_iterator_next(weight_map_iterator* iterator);
 
     /***************************************************************************
     * Deallocates the map iterator.                                            *
@@ -87,7 +85,8 @@ extern "C" {
     void weight_map_iterator_free(weight_map_iterator* iterator);
 
     void weight_map_iterator_visit(weight_map_iterator* p_iterator,
-                                   size_t* p_vertex_id);
+                                   size_t* p_vertex_id,
+                                   double* p_weight);
 
     void weight_map_iterator_remove(weight_map_iterator* p_iterator);
 

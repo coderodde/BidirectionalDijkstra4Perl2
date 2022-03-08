@@ -11,19 +11,14 @@ static size_t milliseconds()
     return (size_t)(1000* clock() / CLOCKS_PER_SEC);
 }
 
-static const size_t NODES = 100 * 1000;
-static const size_t EDGES = 500 * 1000;
+static const size_t NODES = 10;
+static const size_t EDGES = 40;
 
 static void testRemoveNode()
 {
     Graph* graph = allocGraph();
 
     puts("--- testRemoveNode() begin.");
-    /*
-    addEdge(graph, 0, 1, 1.0);
-    addEdge(graph, 1, 2, 2.0);
-
-    removeVertex(graph, 1);*/
 
     addEdge(graph, 1, 2, 1.0);
     addEdge(graph, 2, 3, 2.0);
@@ -68,6 +63,19 @@ double randfrom(double min, double max)
 
 Graph* buildGraph() {
     Graph* p_graph = allocGraph();
+    list* path;
+    int return_status = -1;
+
+    addEdge(p_graph, 0, 1, 1.0);
+    addEdge(p_graph, 1, 2, 2.0);
+
+    path = find_shortest_path(p_graph, 0, 2, &return_status);
+
+    for (size_t i = 0; i < list_size(path); ++i) {
+        printf("%zu\n", list_get(path, i));
+    }
+
+    /*
     size_t id1;
     size_t id2;
     double weight;
@@ -110,7 +118,7 @@ Graph* buildGraph() {
                               &result_status);
 
     printf("%d\n", result_status);
-
+    */
     return p_graph;
 }
 
@@ -128,7 +136,7 @@ int main(int argc, char* argv[])
 
     // vertex_set* pvs = vertex_set_alloc(10, 1.0f, hash, equals);
 
-    testRemoveNode();
+    // testRemoveNode();
 
     freeGraph(p_graph);
     return 0;

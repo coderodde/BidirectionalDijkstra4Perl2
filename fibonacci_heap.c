@@ -863,7 +863,7 @@ size_t fibonacci_heap_min(fibonacci_heap* heap)
 {
     if (!heap)
     {
-        return NULL;
+        abort();
     }
 
     if (heap->minimum_node)

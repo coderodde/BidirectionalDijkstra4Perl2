@@ -407,8 +407,10 @@ void weight_map_iterator_free(weight_map_iterator* iterator)
 }
 
 void weight_map_iterator_visit(weight_map_iterator* p_iterator,
-                               size_t* p_vertex_id) {
+                               size_t* p_vertex_id,
+                               double* p_weight) {
     *p_vertex_id = p_iterator->entry->vertex_id;
+    *p_weight = p_iterator->entry->weight;
 }
 
 void weight_map_iterator_remove(

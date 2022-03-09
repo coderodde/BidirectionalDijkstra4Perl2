@@ -1,6 +1,6 @@
 #include "algorithm.h"
 #include "graph.h"
-#include "list.h"
+#include "vertex_list.h"
 #include "vertex_set.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,8 +11,8 @@ static clock_t milliseconds()
     return clock() / (CLOCKS_PER_SEC / 1000);
 }
 
-static const size_t NODES = 100 * 1000;
-static const size_t EDGES = 500 * 1000;
+static const size_t NODES = 10;
+static const size_t EDGES = 30;
 
 static void testRemoveNode()
 {
@@ -67,16 +67,16 @@ size_t intrand() {
     return ((a << 15) | b);
 }
 
-double get_path_length(list* path,
+double get_path_length(vertex_list* path,
                        Graph* graph) {
     size_t i;
     size_t vertex_id_1;
     size_t vertex_id_2;
     double length = 0.0;
 
-    for (i = 0; i < list_size(path) - 1; ++i) {
-        vertex_id_1 = list_get(path, i);
-        vertex_id_2 = list_get(path, i + 1);
+    for (i = 0; i < vertex_list_size(path) - 1; ++i) {
+        vertex_id_1 = vertex_list_get(path, i);
+        vertex_id_2 = vertex_list_get(path, i + 1);
 
         length += getEdgeWeight(graph, 
                                 vertex_id_1, 
@@ -97,10 +97,19 @@ Graph* buildGraph() {
     size_t target_vertex_id;
     clock_t milliseconds_a;
     clock_t milliseconds_b;
-    list* path;
+    vertex_list* path;
+    int rs;
 
     initGraph(p_graph);
 
+    addEdge(p_graph, 0, 1, 1.0);
+    addEdge(p_graph, 1, 2, 2.0);
+    path = find_shortest_path_2(p_graph, 0, 2, &rs);
+
+    printf("rs: %d\n", rs);
+    vertex_list_get(path, 0);
+
+    /*
     srand((unsigned) time(NULL));
 
     milliseconds_a = milliseconds();
@@ -124,25 +133,54 @@ Graph* buildGraph() {
     printf("Built the graph in %zu milliseconds.\n", 
            (milliseconds_b - milliseconds_a));
 
+    puts("Bidirectional Dijkstra:");
+
     int result_status = 0;
 
     milliseconds_a = milliseconds();
     path = find_shortest_path(p_graph,
-                              source_vertex_id,
-                              target_vertex_id,
-                              &result_status);
+        source_vertex_id,
+        target_vertex_id,
+        &result_status);
 
     milliseconds_b = milliseconds();
 
-    for (i = 0; i < list_size(path); ++i) {
-        printf("%zu\n", list_get(path, i));
+    for (i = 0; i < vertex_list_size(path); ++i) {
+        printf("%zu\n", vertex_list_get(path, i));
     }
 
     printf("Path length: %f\n", get_path_length(path, p_graph));
     printf("Duration: %d milliseconds.\n",
-           (milliseconds_b - milliseconds_a));
+        (milliseconds_b - milliseconds_a));
+
+    printf("Result status: %d\n\n", result_status);
+
+    puts("Original Dijkstra:");
+
+    milliseconds_a = milliseconds();
+    path = find_shortest_path_2(p_graph,
+                                source_vertex_id,
+                                target_vertex_id,
+                                &result_status);
+
+    milliseconds_b = milliseconds();
+
+    for (i = 0; i < vertex_list_size(path); ++i) {
+        printf("%zu\n", vertex_list_get(path, i));
+    }
+
+    printf("Path length: %f\n", get_path_length(path, p_graph));
+    printf("Duration: %d milliseconds.\n",
+        (milliseconds_b - milliseconds_a));
 
     printf("Result status: %d\n", result_status);
+
+    */
+
+    for (i = 0; i < vertex_list_size(path); ++i) {
+        printf("%zu\n", vertex_list_get(path, i));
+    }
+
     return p_graph;
 }
 

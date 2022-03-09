@@ -604,7 +604,7 @@ static void cascading_cut(fibonacci_heap* heap,
     }
 }
 
-bool fibonacci_heap_decrease_key(fibonacci_heap* heap,
+void fibonacci_heap_decrease_key(fibonacci_heap* heap,
                                  size_t vertex_id,
                                  double priority)
 {

@@ -24,7 +24,7 @@ extern "C" {
     * Adds 'p_element' to the set if not already there. Returns true if the    *
     * structure of the set changed.                                            *
     ***************************************************************************/
-    bool vertex_set_add(vertex_set* p_set, size_t vertex_id);
+    int vertex_set_add(vertex_set* p_set, size_t vertex_id);
 
     /***************************************************************************
     * Returns true if the set contains the element.                            *

@@ -148,7 +148,7 @@
     <ClInclude Include="graph_vertex_map.h" />
     <ClInclude Include="parent_map.h" />
     <ClInclude Include="algorithm.h" />
-    <ClInclude Include="list.h" />
+    <ClInclude Include="vertex_list.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vertex_set.h" />
     <ClInclude Include="weight_map.h" />
@@ -161,7 +161,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="parent_map.c" />
     <ClCompile Include="algorithm.c" />
-    <ClCompile Include="list.c" />
+    <ClCompile Include="vertex_list.c" />
     <ClCompile Include="vertex_set.c" />
     <ClCompile Include="weight_map.c" />
   </ItemGroup>

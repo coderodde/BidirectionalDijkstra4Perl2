@@ -33,7 +33,7 @@ extern "C" {
     * Attempts to assign a higher priority to the element. Returns true only   *
     * if the structure of the heap changed due to this call.                   *
     ***************************************************************************/
-    bool fibonacci_heap_decrease_key(fibonacci_heap* heap,
+    void fibonacci_heap_decrease_key(fibonacci_heap* heap,
                                      size_t vertex_id,
                                      double new_priority);
 

@@ -106,7 +106,7 @@ vertex_set* vertex_set_alloc(size_t initial_capacity,
     return set;
 }
 
-static void ensure_capacity(vertex_set* set)
+static int ensure_capacity(vertex_set* set)
 {
     size_t new_capacity;
     size_t new_mask;
@@ -116,7 +116,7 @@ static void ensure_capacity(vertex_set* set)
 
     if (set->size < set->max_allowed_size)
     {
-        return;
+        return RETURN_STATUS_OK;
     }
 
     new_capacity = 2 * set->table_capacity;
@@ -125,7 +125,7 @@ static void ensure_capacity(vertex_set* set)
 
     if (!new_table)
     {
-        return;
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     /* Rehash the entries. */
@@ -142,17 +142,20 @@ static void ensure_capacity(vertex_set* set)
     set->table_capacity = new_capacity;
     set->mask = new_mask;
     set->max_allowed_size = (size_t)(new_capacity * set->load_factor);
+
+    return RETURN_STATUS_OK;
 }
 
-bool vertex_set_add(vertex_set* set, size_t vertex_id)
+int vertex_set_add(vertex_set* set, size_t vertex_id)
 {
     size_t index;
     size_t hash_value;
+    int rs; /* return status */
     vertex_set_entry* entry;
 
     if (!set)
     {
-        return NULL;
+        return RETURN_STATUS_NO_MAP;
     }
 
     hash_value = vertex_id;
@@ -162,11 +165,13 @@ bool vertex_set_add(vertex_set* set, size_t vertex_id)
     {
         if (entry->vertex_id, vertex_id)
         {
-            return false;
+            return RETURN_STATUS_OK;
         }
     }
 
-    ensure_capacity(set);
+    if ((rs = ensure_capacity(set)) != RETURN_STATUS_OK) {
+        return rs;
+    }
 
     /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & set->mask;
@@ -190,7 +195,7 @@ bool vertex_set_add(vertex_set* set, size_t vertex_id)
     set->size++;
     set->mod_count++;
 
-    return true;
+    return RETURN_STATUS_OK;
 }
 
 bool vertex_set_contains(vertex_set* set, size_t vertex_id)

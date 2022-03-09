@@ -694,6 +694,8 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
         while (weight_map_iterator_has_next(
             p_weight_map_children_iterator)) {
 
+            updated = FALSE;
+
             weight_map_iterator_visit(p_weight_map_children_iterator,
                     &child_vertex_id,
                     &weight);

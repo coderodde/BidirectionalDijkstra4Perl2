@@ -128,7 +128,7 @@ typedef struct search_state_2 {
 static void search_state_2_init(search_state_2* p_state) {
     p_state->p_open =
         dary_heap_alloc(
-            2,
+            4,
             INITIAL_MAP_CAPACITY,
             LOAD_FACTOR);
 
@@ -615,7 +615,6 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
     search_state_2 search_state_2_;
     size_t current_vertex_id;
     size_t child_vertex_id;
-    size_t parent_vertex_id;
     double weight;
     double tentative_length;
     GraphVertex* p_graph_vertex;

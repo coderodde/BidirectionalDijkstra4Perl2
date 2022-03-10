@@ -53,6 +53,6 @@
     /*************************************************************************
     Clears entirely the distance map.                    
     *************************************************************************/
-    void unordered_map_free(distance_map* map);
+    void distance_map_free(distance_map* map);
 
 #endif	/* COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H */

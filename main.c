@@ -11,8 +11,8 @@ static clock_t milliseconds()
     return clock() / (CLOCKS_PER_SEC / 1000);
 }
 
-static const size_t NODES = 200;
-static const size_t EDGES = 1000;
+static const size_t NODES = 100 * 1000;
+static const size_t EDGES = 500 * 1000;
 
 static void testRemoveNode()
 {
@@ -110,8 +110,8 @@ Graph* buildGraph() {
     size_t id1;
     size_t id2;
     double weight;
-    size_t source_vertex_id;
-    size_t target_vertex_id;
+    size_t source_vertex_id = 0;
+    size_t target_vertex_id = 0;
     clock_t milliseconds_a;
     clock_t milliseconds_b;
     vertex_list* path;
@@ -120,10 +120,7 @@ Graph* buildGraph() {
     unsigned random_seed;
     initGraph(p_graph);
 
-    //random_seed = 1646912380;
-    random_seed = (unsigned) time(NULL);
-    random_seed = 1646912824;
-
+    random_seed = 1; //(unsigned) time(NULL);
     srand(random_seed);
     printf("Seed = %d\n\n", random_seed);
 
@@ -145,7 +142,7 @@ Graph* buildGraph() {
     }
 
     milliseconds_b = milliseconds();
-    printf("Built the graph in %zu milliseconds.\n", 
+    printf("Built the graph in %d milliseconds.\n", 
            (milliseconds_b - milliseconds_a));
 
     printf("Source node: %zu\n", source_vertex_id);

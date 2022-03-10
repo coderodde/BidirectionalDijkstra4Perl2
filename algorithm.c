@@ -176,21 +176,35 @@ static vertex_list* traceback_path(size_t touch_vertex_id,
                                    parent_map * parent_backward) {
 
     vertex_list* path = vertex_list_alloc(100);
+    int rs; /* result status */
     size_t vertex_id = touch_vertex_id;
-    size_t previous_vertex_id = parent_map_get(parent_forward,
-        touch_vertex_id);
+    size_t previous_vertex_id = 
+        parent_map_get(parent_forward,
+                       touch_vertex_id);
 
-    while (vertex_id != previous_vertex_id) {
-        vertex_list_push_front(path, vertex_id);
+    do {
+        rs = vertex_list_push_front(path, vertex_id);
+
+        if (rs != RETURN_STATUS_OK) {
+            vertex_list_free(path);
+            return NULL;
+        }
+
         previous_vertex_id = vertex_id;
         vertex_id = parent_map_get(parent_forward, vertex_id);
-    }
+    } while (vertex_id != previous_vertex_id);
 
     vertex_id = parent_map_get(parent_backward, touch_vertex_id);
     previous_vertex_id = touch_vertex_id;
 
     while (vertex_id != previous_vertex_id) {
-        vertex_list_push_back(path, vertex_id);
+        rs = vertex_list_push_back(path, vertex_id);
+
+        if (rs != RETURN_STATUS_OK) {
+            vertex_list_free(path);
+            return NULL;
+        }
+
         previous_vertex_id = vertex_id;
         vertex_id = parent_map_get(parent_backward, vertex_id);
     }
@@ -319,9 +333,9 @@ vertex_list* find_shortest_path(Graph * p_graph,
     }
 
     while (fibonacci_heap_size(p_open_forward) > 0 &&
-        fibonacci_heap_size(p_open_backward) > 0) {
-        if (p_touch_vertex_id) {
+           fibonacci_heap_size(p_open_backward) > 0) {
 
+        if (p_touch_vertex_id) {
             temporary_path_length =
                 distance_map_get(
                     p_distance_forward,
@@ -335,6 +349,13 @@ vertex_list* find_shortest_path(Graph * p_graph,
                 p_path = traceback_path(*p_touch_vertex_id,
                     p_parent_forward,
                     p_parent_backward);
+
+                if (p_path) {
+                    TRY_REPORT_RETURN_STATUS(RETURN_STATUS_OK);
+                } else {
+                    TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
+                }
+
                 CLEAN_SEARCH_STATE;
                 free(p_touch_vertex_id);
                 return p_path;
@@ -551,17 +572,24 @@ static vertex_list* traceback_path_2(size_t target_vertex_id,
                                      parent_map* parent) {
 
     vertex_list* path = vertex_list_alloc(100);
+    int rs; /* result status */
     size_t vertex_id = target_vertex_id;
     size_t previous_vertex_id = 
         parent_map_get(parent,
                        target_vertex_id);
 
     do {
-        vertex_list_push_front(path, vertex_id);
+        rs = vertex_list_push_front(path, vertex_id);
+
+        if (rs != RETURN_STATUS_OK) {
+            vertex_list_free(path);
+            return NULL;
+        }
+
         previous_vertex_id = vertex_id;
         vertex_id = parent_map_get(parent, vertex_id);
     } while (vertex_id != previous_vertex_id);
-
+    
     return path;
 }
 

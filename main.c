@@ -11,8 +11,8 @@ static clock_t milliseconds()
     return clock() / (CLOCKS_PER_SEC / 1000);
 }
 
-static const size_t NODES = 10;
-static const size_t EDGES = 30;
+static const size_t NODES = 100 * 1000;
+static const size_t EDGES = 500 * 1000;
 
 static void testRemoveNode()
 {
@@ -54,14 +54,31 @@ static void testRemoveNode()
     puts("--- testRemoveNode() passed.");
 }
 
-double randfrom(double min, double max)
+static int paths_are_equal(vertex_list* path_1,
+                           vertex_list* path_2) {
+    size_t i;
+    
+    if (vertex_list_size(path_1) != vertex_list_size(path_2)) {
+        return FALSE;
+    }
+
+    for (i = 0; i < vertex_list_size(path_1); ++i) {
+        if (vertex_list_get(path_1, i) != vertex_list_get(path_2, i)) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+static double randfrom(double min, double max)
 {
     double range = (max - min);
     double div = RAND_MAX / range;
     return min + (rand() / div);
 }
 
-size_t intrand() {
+static size_t intrand() {
     size_t a = rand();
     size_t b = rand();
     return ((a << 15) | b);
@@ -98,18 +115,22 @@ Graph* buildGraph() {
     clock_t milliseconds_a;
     clock_t milliseconds_b;
     vertex_list* path;
-    int rs;
+    vertex_list* path_2;
+    int rs = -1;
 
     initGraph(p_graph);
-
+    /*
     addEdge(p_graph, 0, 1, 1.0);
     addEdge(p_graph, 1, 2, 2.0);
-    path = find_shortest_path_2(p_graph, 0, 2, &rs);
-    printf("%d %d\n", vertex_list_size(path), vertex_list_get(path, 0));
+    path = find_shortest_path_2(p_graph, 0, 2,NULL);
+    printf("%d %d\n", 
+           vertex_list_size(path), 
+           vertex_list_get(path, 0));
+
     printf("rs: %d\n", rs);
     vertex_list_get(path, 0);
+    */
 
-    /*
     srand((unsigned) time(NULL));
 
     milliseconds_a = milliseconds();
@@ -133,15 +154,16 @@ Graph* buildGraph() {
     printf("Built the graph in %zu milliseconds.\n", 
            (milliseconds_b - milliseconds_a));
 
-    puts("Bidirectional Dijkstra:");
+    printf("Source node: %zu\n", source_vertex_id);
+    printf("Target node: %zu\n", target_vertex_id);
 
-    int result_status = 0;
+    puts("--- Bidirectional Dijkstra:");
 
     milliseconds_a = milliseconds();
     path = find_shortest_path(p_graph,
-        source_vertex_id,
-        target_vertex_id,
-        &result_status);
+                              source_vertex_id,
+                              target_vertex_id,
+                              &rs);
 
     milliseconds_b = milliseconds();
 
@@ -153,34 +175,31 @@ Graph* buildGraph() {
     printf("Duration: %d milliseconds.\n",
         (milliseconds_b - milliseconds_a));
 
-    printf("Result status: %d\n\n", result_status);
-
-    puts("Original Dijkstra:");
+    printf("Result status: %d\n\n", rs);
+    puts("--- Original Dijkstra:");
 
     milliseconds_a = milliseconds();
-    path = find_shortest_path_2(p_graph,
+    path_2 = find_shortest_path_2(p_graph,
                                 source_vertex_id,
                                 target_vertex_id,
-                                &result_status);
+                                &rs);
 
     milliseconds_b = milliseconds();
 
-    for (i = 0; i < vertex_list_size(path); ++i) {
-        printf("%zu\n", vertex_list_get(path, i));
+    for (i = 0; i < vertex_list_size(path_2); ++i) {
+        printf("%zu\n", vertex_list_get(path_2, i));
     }
 
-    printf("Path length: %f\n", get_path_length(path, p_graph));
+    printf("Path length: %f\n", get_path_length(path_2, p_graph));
     printf("Duration: %d milliseconds.\n",
         (milliseconds_b - milliseconds_a));
 
-    printf("Result status: %d\n", result_status);
+    printf("Result status: %d\n", rs);
 
-    */
+    printf("Algorithms agree: %d\n", paths_are_equal(path, path_2));
 
-    for (i = 0; i < vertex_list_size(path); ++i) {
-        printf("%zu\n", vertex_list_get(path, i));
-    }
-
+    vertex_list_free(path);
+    vertex_list_free(path_2);
     return p_graph;
 }
 

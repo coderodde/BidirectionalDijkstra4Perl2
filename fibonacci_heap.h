@@ -38,11 +38,6 @@ extern "C" {
                                      double new_priority);
 
     /***************************************************************************
-    * Returns true only if the element is in the heap.                         *
-    ***************************************************************************/
-    bool fibonacci_heap_contains_key(fibonacci_heap* heap, size_t vertex_id);
-
-    /***************************************************************************
     * Removes the highest priority element and returns it.                     *
     ***************************************************************************/
     size_t fibonacci_heap_extract_min(fibonacci_heap* heap);
@@ -68,8 +63,6 @@ extern "C" {
     * programmer must, however, memory-manage the contents.                    *
     ***************************************************************************/
     void fibonacci_heap_free(fibonacci_heap* heap);
-
-    bool fibonacci_heap_is_healthy(fibonacci_heap* heap);
 
 #ifdef	__cplusplus
 }

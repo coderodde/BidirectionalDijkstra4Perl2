@@ -45,6 +45,9 @@
     <ClInclude Include="weight_map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dary_heap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="graph.c">
@@ -75,6 +78,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="weight_map.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dary_heap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

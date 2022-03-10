@@ -135,7 +135,7 @@ heap_node_map* heap_node_map_alloc(
     return map;
 }
 
-static void ensure_capacity(heap_node_map* map)
+static int ensure_capacity(heap_node_map* map)
 {
     size_t new_capacity;
     size_t new_mask;
@@ -145,7 +145,7 @@ static void ensure_capacity(heap_node_map* map)
 
     if (map->size < map->max_allowed_size)
     {
-        return;
+        return RETURN_STATUS_OK;
     }
 
     new_capacity = 2 * map->table_capacity;
@@ -154,7 +154,7 @@ static void ensure_capacity(heap_node_map* map)
 
     if (!new_table)
     {
-        return;
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     /* Rehash the entries. */
@@ -171,22 +171,17 @@ static void ensure_capacity(heap_node_map* map)
     map->table_capacity = new_capacity;
     map->mask = new_mask;
     map->max_allowed_size = (size_t)(new_capacity * map->load_factor);
+    return RETURN_STATUS_OK;
 }
 
-bool heap_node_map_put(
+static int fibonacci_heap_node_map_put(
     heap_node_map* map,
     size_t vertex_id,
     fibonacci_heap_node* heap_node)
 {
     size_t index;
     size_t hash_value;
-    void* old_value;
     heap_node_map_entry* entry;
-
-    if (!map)
-    {
-        return false;
-    }
 
     hash_value = vertex_id;
     index = hash_value & map->mask;
@@ -196,18 +191,20 @@ bool heap_node_map_put(
         if (entry->vertex_id == vertex_id)
         {
             entry->heap_node = heap_node;
-            return true;
+            return TRUE;
         }
     }
-    // todo : add mem check
-    ensure_capacity(map);
+
+    if (ensure_capacity(map) != RETURN_STATUS_OK) {
+         return FALSE;
+    }
 
     /* Recompute the index since it is possibly changed by 'ensure_capacity' */
     index = hash_value & map->mask;
     entry = heap_node_map_entry_alloc(vertex_id, heap_node);
 
     if (!entry) {
-        return false;
+        return FALSE;
     }
 
     entry->chain_next = map->table[index];
@@ -227,27 +224,24 @@ bool heap_node_map_put(
     }
 
     map->size++;
-    return true;
+    return TRUE;
 }
 
 size_t heap_node_map_size(heap_node_map* map)
 {
-    if (!map) {
-        abort();
-        return;
-    }
-
     return map->size;
 }
 
-bool heap_node_map_contains_key(heap_node_map* map, size_t vertex_id) 
+static int heap_node_map_contains_vertex(
+    heap_node_map* map, 
+    size_t vertex_id) 
 {
     size_t index;
     heap_node_map_entry* entry;
 
     if (!map)
     {
-        return false;
+        return FALSE;
     }
 
     index = vertex_id & map->mask;
@@ -256,11 +250,11 @@ bool heap_node_map_contains_key(heap_node_map* map, size_t vertex_id)
     {
         if (vertex_id == entry->vertex_id)
         {
-            return 1;
+            return TRUE;
         }
     }
 
-    return 0;
+    return FALSE;
 }
 
 fibonacci_heap_node* heap_node_map_get(heap_node_map* map, size_t vertex_id)
@@ -523,7 +517,7 @@ int fibonacci_heap_add(fibonacci_heap* heap,
         return RETURN_STATUS_NO_HEAP;
     }
 
-    if (heap_node_map_contains_key(heap->node_map, vertex_id))
+    if (heap_node_map_contains_vertex(heap->node_map, vertex_id))
     {
         return RETURN_STATUS_ADDING_DUPLICATE_VERTEX;
     }
@@ -550,7 +544,7 @@ int fibonacci_heap_add(fibonacci_heap* heap,
         heap->minimum_node = node;
     }
 
-    if (!heap_node_map_put(heap->node_map, vertex_id, node)) {
+    if (!fibonacci_heap_node_map_put(heap->node_map, vertex_id, node)) {
         free(node);
         return RETURN_STATUS_NO_MEMORY;
     }
@@ -611,22 +605,17 @@ void fibonacci_heap_decrease_key(fibonacci_heap* heap,
     fibonacci_heap_node* x;
     fibonacci_heap_node* y;
 
-    if (!heap)
-    {
-        return false;
-    }
-
     x = heap_node_map_get(heap->node_map, vertex_id);
 
     if (!x)
     {
-        return false;
+        return FALSE;
     }
 
     if (x->priority <= priority)
     {
         /* Cannot improve priority of the input element. */
-        return false;
+        return FALSE;
     }
 
     x->priority = priority;
@@ -641,7 +630,7 @@ void fibonacci_heap_decrease_key(fibonacci_heap* heap,
         heap->minimum_node = x;
     }
 
-    return true;
+    return TRUE;
 }
 
 static bool try_expand_array(fibonacci_heap* heap, size_t size)
@@ -847,16 +836,6 @@ size_t fibonacci_heap_extract_min(fibonacci_heap* heap)
     heap_node_map_remove(heap->node_map, return_vertex_id);
     free(node_to_free);
     return return_vertex_id;
-}
-
-bool fibonacci_heap_contains_key(fibonacci_heap* heap, void* element)
-{
-    if (!heap)
-    {
-        return false;
-    }
-
-    return heap_node_map_contains_key(heap->node_map, element);
 }
 
 size_t fibonacci_heap_min(fibonacci_heap* heap)

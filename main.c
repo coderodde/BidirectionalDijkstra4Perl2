@@ -11,8 +11,8 @@ static clock_t milliseconds()
     return clock() / (CLOCKS_PER_SEC / 1000);
 }
 
-static const size_t NODES = 100 * 1000;
-static const size_t EDGES = 500 * 1000;
+static const size_t NODES = 100  * 1000;
+static const size_t EDGES = 400 * 1000;
 
 static void testRemoveNode()
 {
@@ -130,8 +130,8 @@ Graph* buildGraph() {
     printf("rs: %d\n", rs);
     vertex_list_get(path, 0);
     */
-
-    srand((unsigned) time(NULL));
+    srand(1);
+    //srand((unsigned) time(NULL));
 
     milliseconds_a = milliseconds();
 

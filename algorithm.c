@@ -1,7 +1,6 @@
 #include "algorithm.h"
 #include "dary_heap.h"
 #include "distance_map.h"
-#include "fibonacci_heap.h"
 #include "graph.h"
 #include "parent_map.h"
 #include "util.h"
@@ -20,10 +19,11 @@ if (p_return_status) {                          \
 
 static const size_t INITIAL_MAP_CAPACITY = 1024;
 static const float LOAD_FACTOR = 1.3f;
+static const size_t DARY_HEAP_DEGREE = 4;
 
 typedef struct search_state {
-    fibonacci_heap* p_open_forward;
-    fibonacci_heap* p_open_backward;
+    dary_heap* p_open_forward;
+    dary_heap* p_open_backward;
     vertex_set*     p_closed_forward;
     vertex_set*     p_closed_backward;
     distance_map*   p_distance_forward;
@@ -34,12 +34,14 @@ typedef struct search_state {
 
 static void search_state_init(search_state* p_state) {
     p_state->p_open_forward =
-        fibonacci_heap_alloc(
+        dary_heap_alloc(
+            DARY_HEAP_DEGREE,
             INITIAL_MAP_CAPACITY,
             LOAD_FACTOR);
 
     p_state->p_open_backward =
-        fibonacci_heap_alloc(
+        dary_heap_alloc(
+            DARY_HEAP_DEGREE,
             INITIAL_MAP_CAPACITY,
             LOAD_FACTOR);
 
@@ -87,11 +89,11 @@ static int search_state_ok(search_state* p_search_state) {
 
 static void search_state_free(search_state* p_search_state) {
     if (p_search_state->p_open_forward) {
-        fibonacci_heap_free(p_search_state->p_open_forward);
+        dary_heap_free(p_search_state->p_open_forward);
     }
 
     if (p_search_state->p_open_backward) {
-        fibonacci_heap_free(p_search_state->p_open_backward);
+        dary_heap_free(p_search_state->p_open_backward);
     }
 
     if (p_search_state->p_closed_forward) {
@@ -128,7 +130,7 @@ typedef struct search_state_2 {
 static void search_state_2_init(search_state_2* p_state) {
     p_state->p_open =
         dary_heap_alloc(
-            4,
+            DARY_HEAP_DEGREE,
             INITIAL_MAP_CAPACITY,
             LOAD_FACTOR);
 
@@ -233,8 +235,8 @@ vertex_list* find_shortest_path(Graph * p_graph,
     GraphVertex* p_graph_vertex;
 
     vertex_list*    p_path;
-    fibonacci_heap* p_open_forward;
-    fibonacci_heap* p_open_backward;
+    dary_heap*      p_open_forward;
+    dary_heap*      p_open_backward;
     vertex_set*     p_closed_forward;
     vertex_set*     p_closed_backward;
     distance_map*   p_distance_forward;
@@ -284,7 +286,7 @@ vertex_list* find_shortest_path(Graph * p_graph,
     p_parent_backward   = search_state_.p_parent_backward;
 
     /* Initialize the state: */
-    if (fibonacci_heap_add(p_open_forward,
+    if (dary_heap_add(p_open_forward,
         source_vertex_id,
         0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
@@ -292,7 +294,7 @@ vertex_list* find_shortest_path(Graph * p_graph,
         return NULL;
     }
 
-    if (fibonacci_heap_add(p_open_backward,
+    if (dary_heap_add(p_open_backward,
         target_vertex_id,
         0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
@@ -334,18 +336,18 @@ vertex_list* find_shortest_path(Graph * p_graph,
         return NULL;
     }
 
-    while (fibonacci_heap_size(p_open_forward) > 0 &&
-           fibonacci_heap_size(p_open_backward) > 0) {
+    while (dary_heap_size(p_open_forward) > 0 &&
+           dary_heap_size(p_open_backward) > 0) {
 
         if (p_touch_vertex_id) {
             temporary_path_length =
                 distance_map_get(
                     p_distance_forward,
-                    fibonacci_heap_min(p_open_forward))
+                    dary_heap_min(p_open_forward))
                 +
                 distance_map_get(
                     p_distance_backward,
-                    fibonacci_heap_min(p_open_backward));
+                    dary_heap_min(p_open_backward));
 
             if (temporary_path_length > best_path_length) {
                 p_path = traceback_path(*p_touch_vertex_id,
@@ -364,13 +366,13 @@ vertex_list* find_shortest_path(Graph * p_graph,
             }
         }
 
-        if (fibonacci_heap_size(p_open_forward) +
+        if (dary_heap_size(p_open_forward) +
             vertex_set_size(p_closed_forward)
             <=
-            fibonacci_heap_size(p_open_backward) +
+            dary_heap_size(p_open_backward) +
             vertex_set_size(p_closed_backward)) {
 
-            current_vertex_id = fibonacci_heap_extract_min(p_open_forward);
+            current_vertex_id = dary_heap_extract_min(p_open_forward);
 
             if ((rs = vertex_set_add(p_closed_forward, current_vertex_id)) !=
                 RETURN_STATUS_OK) {
@@ -390,6 +392,11 @@ vertex_list* find_shortest_path(Graph * p_graph,
             if (!p_weight_map_children_iterator) {
                 CLEAN_SEARCH_STATE;
                 TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
+                
+                if (p_touch_vertex_id) {
+                    free(p_touch_vertex_id);
+                }
+
                 return NULL;
             }
 
@@ -415,37 +422,27 @@ vertex_list* find_shortest_path(Graph * p_graph,
                 if (!distance_map_contains_vertex_id(p_distance_forward,
                     child_vertex_id)) {
 
-                    distance_map_put(
-                        p_distance_forward,
-                        child_vertex_id,
-                        tentative_length);
-
-                    parent_map_put(
-                        p_parent_forward,
-                        child_vertex_id,
-                        current_vertex_id);
-
-                    fibonacci_heap_add(
+                    if ((rs = dary_heap_add(
                         p_open_forward,
                         child_vertex_id,
-                        tentative_length);
+                        tentative_length)) != RETURN_STATUS_OK) {
+
+                        CLEAN_SEARCH_STATE;
+                        TRY_REPORT_RETURN_STATUS(rs);
+
+                        if (p_touch_vertex_id) {
+                            free(p_touch_vertex_id);
+                        }
+
+                        return NULL;
+                    }
 
                     updated = 1;
                 }
                 else if (distance_map_get(p_distance_forward, child_vertex_id) >
                     tentative_length) {
 
-                    distance_map_put(
-                        p_distance_forward,
-                        child_vertex_id,
-                        tentative_length);
-
-                    parent_map_put(
-                        p_parent_forward,
-                        child_vertex_id,
-                        current_vertex_id);
-
-                    fibonacci_heap_decrease_key(
+                    dary_heap_decrease_key(
                         p_open_forward,
                         child_vertex_id,
                         tentative_length);
@@ -454,6 +451,30 @@ vertex_list* find_shortest_path(Graph * p_graph,
                 }
 
                 if (updated) {
+
+                    if ((rs = distance_map_put(
+                        p_distance_forward,
+                        child_vertex_id,
+                        tentative_length)) != RETURN_STATUS_OK) {
+
+                        CLEAN_SEARCH_STATE;
+                        TRY_REPORT_RETURN_STATUS(rs);
+                        free(NULL);
+                        free(p_touch_vertex_id);
+                        return NULL;
+                    }
+
+                    if ((rs = parent_map_put(
+                        p_parent_forward,
+                        child_vertex_id,
+                        current_vertex_id)) != RETURN_STATUS_OK) {
+
+                        CLEAN_SEARCH_STATE;
+                        TRY_REPORT_RETURN_STATUS(rs);
+                        free(p_touch_vertex_id);
+                        return NULL;
+                    }
+
                     if (vertex_set_contains(p_closed_backward,
                         child_vertex_id)) {
 
@@ -476,7 +497,7 @@ vertex_list* find_shortest_path(Graph * p_graph,
             }
         }
         else {
-            current_vertex_id = fibonacci_heap_extract_min(p_open_backward);
+            current_vertex_id = dary_heap_extract_min(p_open_backward);
             vertex_set_add(p_closed_backward, current_vertex_id);
 
             p_graph_vertex =
@@ -510,38 +531,26 @@ vertex_list* find_shortest_path(Graph * p_graph,
 
                 if (!distance_map_contains_vertex_id(p_distance_backward,
                     parent_vertex_id)) {
-                    distance_map_put(
-                        p_distance_backward,
-                        parent_vertex_id,
-                        tentative_length);
-
-                    parent_map_put(
-                        p_parent_backward,
-                        parent_vertex_id,
-                        current_vertex_id);
-
-                    fibonacci_heap_add(
+                    
+                    if ((rs = dary_heap_add(
                         p_open_backward,
                         parent_vertex_id,
-                        tentative_length);
+                        tentative_length)) != RETURN_STATUS_OK) {
+
+                        CLEAN_SEARCH_STATE;
+                        TRY_REPORT_RETURN_STATUS(rs);
+                        free(p_touch_vertex_id);
+                        return NULL;
+                    }
 
                     updated = 1;
                 }
                 else if (distance_map_get(p_distance_backward,
                     parent_vertex_id)
-                                            >
+                    >
                     tentative_length) {
-                    distance_map_put(
-                        p_distance_backward,
-                        parent_vertex_id,
-                        tentative_length);
 
-                    parent_map_put(
-                        p_parent_backward,
-                        parent_vertex_id,
-                        current_vertex_id);
-
-                    fibonacci_heap_decrease_key(
+                    dary_heap_decrease_key(
                         p_open_backward,
                         parent_vertex_id,
                         tentative_length);
@@ -550,6 +559,29 @@ vertex_list* find_shortest_path(Graph * p_graph,
                 }
 
                 if (updated) {
+
+                    if ((rs = distance_map_put(
+                        p_distance_backward,
+                        parent_vertex_id,
+                        tentative_length)) != RETURN_STATUS_OK) {
+
+                        CLEAN_SEARCH_STATE;
+                        TRY_REPORT_RETURN_STATUS(rs);
+                        free(p_touch_vertex_id);
+                        return NULL;
+                    }
+
+                    if ((rs = parent_map_put(
+                        p_parent_backward,
+                        parent_vertex_id,
+                        current_vertex_id)) != RETURN_STATUS_OK) {
+
+                        CLEAN_SEARCH_STATE;
+                        TRY_REPORT_RETURN_STATUS(rs);
+                        free(p_touch_vertex_id);
+                        return NULL;
+                    }
+
                     if (vertex_set_contains(p_closed_forward,
                         parent_vertex_id)) {
 

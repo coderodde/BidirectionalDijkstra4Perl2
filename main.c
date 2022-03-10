@@ -120,7 +120,7 @@ Graph* buildGraph() {
     unsigned random_seed;
     initGraph(p_graph);
 
-    random_seed = 1; //(unsigned) time(NULL);
+    random_seed = (unsigned) time(NULL);
     srand(random_seed);
     printf("Seed = %d\n\n", random_seed);
 

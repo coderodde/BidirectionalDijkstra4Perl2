@@ -1,4 +1,5 @@
 #include "algorithm.h"
+#include "dary_heap.h"
 #include "distance_map.h"
 #include "fibonacci_heap.h"
 #include "graph.h"
@@ -118,7 +119,7 @@ static void search_state_free(search_state* p_search_state) {
     }
 }
 typedef struct search_state_2 {
-    fibonacci_heap* p_open;
+    dary_heap* p_open;
     vertex_set*     p_closed;
     distance_map*   p_distance;
     parent_map*     p_parent;
@@ -126,7 +127,8 @@ typedef struct search_state_2 {
 
 static void search_state_2_init(search_state_2* p_state) {
     p_state->p_open =
-        fibonacci_heap_alloc(
+        dary_heap_alloc(
+            2,
             INITIAL_MAP_CAPACITY,
             LOAD_FACTOR);
 
@@ -155,7 +157,7 @@ static int search_state_2_ok(search_state_2* p_search_state) {
 
 static void search_state_2_free(search_state_2* p_search_state) {
     if (p_search_state->p_open) {
-        fibonacci_heap_free(p_search_state->p_open);
+        dary_heap_free(p_search_state->p_open);
     }
 
     if (p_search_state->p_closed) {
@@ -609,7 +611,7 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
     int updated;
 
     vertex_list*    p_path;
-    fibonacci_heap* p_open;
+    dary_heap* p_open;
     vertex_set*     p_closed;
     distance_map*   p_distance;
     parent_map*     p_parent;
@@ -651,7 +653,7 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
     p_parent   = search_state_2_.p_parent;
 
     /* Initialize the state: */
-    if ((rs = fibonacci_heap_add(p_open,
+    if ((rs = dary_heap_add(p_open,
                                  source_vertex_id,
                                  0.0)) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE_2;
@@ -676,8 +678,8 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
         return NULL;
     }
 
-    while (fibonacci_heap_size(p_open) > 0) {
-        current_vertex_id = fibonacci_heap_extract_min(p_open);
+    while (dary_heap_size(p_open) > 0) {
+        current_vertex_id = dary_heap_extract_min(p_open);
 
         if (current_vertex_id == target_vertex_id) {
             p_path = traceback_path_2(target_vertex_id, p_parent);
@@ -742,7 +744,7 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
                                                  child_vertex_id)) {
                 updated = TRUE;
 
-                if ((rs = fibonacci_heap_add(
+                if ((rs = dary_heap_add(
                             p_open,
                             child_vertex_id,
                             tentative_length)) 
@@ -757,7 +759,7 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
 
                 updated = TRUE;
 
-                fibonacci_heap_decrease_key(
+                dary_heap_decrease_key(
                     p_open,
                     child_vertex_id,
                     tentative_length);

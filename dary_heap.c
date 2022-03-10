@@ -47,53 +47,29 @@ static int maxi(int a, int b)
 }
 
 static const float  MINIMUM_LOAD_FACTOR = 0.2f;
-static const size_t MINIMUM_INITIAL_CAPACITY = 16;
+static const size_t MINIMUM_INITIAL_CAPACITY = 4;
 
-/*******************************************************************************
-* Makes sure that the load factor is no less than a minimum threshold.         *
-*******************************************************************************/
-static float fix_load_factor(float load_factor)
-{
-    return maxf(load_factor, MINIMUM_LOAD_FACTOR);
-}
-
-static dary_heap_node_map_entry* 
-dary_heap_node_map_entry_alloc(size_t vertex_id,   
-                          dary_heap_node* heap_node)
-{
-    dary_heap_node_map_entry* p_ret =
-        malloc(sizeof(*p_ret));
-
-    if (!p_ret)
-    {
-        return NULL;
-    }
-
-    p_ret->vertex_id = vertex_id;
-    p_ret->heap_node = heap_node;
-    p_ret->chain_next = NULL;
-    p_ret->next = NULL;
-    p_ret->prev = NULL;
-    return p_ret;
-}
-
-static const size_t MINIMUM_CAPACITY = 16;
-
-static size_t fix_degree(size_t degree)
-{
+static const size_t fix_degree(size_t degree) {
     return degree < 2 ? 2 : degree;
 }
 
-static size_t fix_initial_capacity(size_t initial_capacity)
-{
-    return initial_capacity < MINIMUM_CAPACITY ? MINIMUM_CAPACITY :
-        initial_capacity;
+static const size_t fix_initial_capacity(size_t initial_capacity) {
+    return initial_capacity < MINIMUM_INITIAL_CAPACITY ?
+            MINIMUM_INITIAL_CAPACITY :
+            initial_capacity;
 }
 
+static float fix_load_factor(float load_factor) {
+    return load_factor < MINIMUM_LOAD_FACTOR ? 
+            MINIMUM_LOAD_FACTOR : 
+            load_factor;
+}
+
+/* Internal workings functions: */
 static dary_heap_node_map* dary_heap_node_map_alloc(
     size_t initial_capacity,
     float load_factor) {
-    
+
     dary_heap_node_map* map = malloc(sizeof(*map));
 
     if (!map) {
@@ -109,12 +85,31 @@ static dary_heap_node_map* dary_heap_node_map_alloc(
     map->head = NULL;
     map->tail = NULL;
     map->table = calloc(initial_capacity,
-                        sizeof(dary_heap_node_map_entry*));
+        sizeof(dary_heap_node_map_entry*));
 
     map->mask = initial_capacity - 1;
     map->max_allowed_size = (size_t)(initial_capacity * load_factor);
 
     return map;
+}
+
+static dary_heap_node_map_entry*
+dary_heap_node_map_entry_alloc(size_t vertex_id,
+    dary_heap_node* heap_node)
+{
+    dary_heap_node_map_entry* p_ret = malloc(sizeof(*p_ret));
+
+    if (!p_ret)
+    {
+        return NULL;
+    }
+
+    p_ret->vertex_id = vertex_id;
+    p_ret->heap_node = heap_node;
+    p_ret->chain_next = NULL;
+    p_ret->next = NULL;
+    p_ret->prev = NULL;
+    return p_ret;
 }
 
 static int ensure_capacity(dary_heap_node_map* map)
@@ -133,7 +128,7 @@ static int ensure_capacity(dary_heap_node_map* map)
     new_capacity = 2 * map->table_capacity;
     new_mask = new_capacity - 1;
     new_table = calloc(new_capacity,
-                       sizeof(dary_heap_node_map_entry*));
+        sizeof(dary_heap_node_map_entry*));
 
     if (!new_table)
     {
@@ -158,7 +153,7 @@ static int ensure_capacity(dary_heap_node_map* map)
     return RETURN_STATUS_OK;
 }
 
-int dary_heap_node_map_put(
+static int dary_heap_node_map_put(
     dary_heap_node_map* map,
     size_t vertex_id,
     dary_heap_node* heap_node)
@@ -166,11 +161,6 @@ int dary_heap_node_map_put(
     size_t index;
     size_t hash_value;
     dary_heap_node_map_entry* entry;
-
-    if (!map)
-    {
-        return FALSE;
-    }
 
     hash_value = vertex_id;
     index = hash_value & map->mask;
@@ -183,7 +173,7 @@ int dary_heap_node_map_put(
             return TRUE;
         }
     }
-    // todo : add mem check
+
     if (ensure_capacity(map) != RETURN_STATUS_OK) {
         return FALSE;
     }
@@ -216,9 +206,94 @@ int dary_heap_node_map_put(
     return TRUE;
 }
 
+static int dary_heap_node_map_contains_vertex(
+    dary_heap_node_map* map,
+    size_t vertex_id)
+{
+    size_t index;
+    dary_heap_node_map_entry* entry;
+
+    index = vertex_id & map->mask;
+
+    for (entry = map->table[index]; entry; entry = entry->chain_next)
+    {
+        if (vertex_id == entry->vertex_id)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static dary_heap_node*
+dary_heap_node_alloc(size_t vertex_id,
+    double priority) {
+    dary_heap_node* node = malloc(sizeof(*node));
+
+    if (!node)
+    {
+        return NULL;
+    }
+
+    node->vertex_id = vertex_id;
+    node->priority = priority;
+    return node;
+}
+
+
+static dary_heap_node*
+dary_heap_node_map_get(dary_heap_node_map* map,
+    size_t vertex_id)
+{
+    size_t index;
+    dary_heap_node_map_entry* p_entry;
+
+    index = vertex_id & map->mask;
+
+    for (p_entry = map->table[index]; p_entry; p_entry = p_entry->chain_next)
+    {
+        if (vertex_id == p_entry->vertex_id)
+        {
+            return p_entry->heap_node;
+        }
+    }
+
+    return NULL;
+}
+
+static void dary_heap_node_map_clear(dary_heap_node_map* map)
+{
+    dary_heap_node_map_entry* entry;
+    dary_heap_node_map_entry* next_entry;
+    size_t index;
+
+    entry = map->head;
+
+    while (entry)
+    {
+        index = entry->vertex_id & map->mask;
+        next_entry = entry->next;
+        free(entry);
+        entry = next_entry;
+        map->table[index] = NULL;
+    }
+
+    map->size = 0;
+    map->head = NULL;
+    map->tail = NULL;
+}
+
+void dary_heap_node_map_free(dary_heap_node_map* map)
+{
+    dary_heap_node_map_clear(map);
+    free(map->table);
+    free(map);
+}
+
 dary_heap* dary_heap_alloc(size_t degree,
-                           size_t initial_capacity,
-                           float  load_factor)
+    size_t initial_capacity,
+    float  load_factor)
 {
     dary_heap* my_heap;
     dary_heap_node_map* p_map;
@@ -231,7 +306,7 @@ dary_heap* dary_heap_alloc(size_t degree,
     }
 
     p_map = dary_heap_node_map_alloc(initial_capacity,
-                                load_factor);
+        load_factor);
 
     if (!p_map)
     {
@@ -246,7 +321,7 @@ dary_heap* dary_heap_alloc(size_t degree,
 
     if (!my_heap->table)
     {
-        heap_node_map_free(p_map);
+        dary_heap_node_map_free(p_map);
         free(my_heap);
         return NULL;
     }
@@ -255,7 +330,7 @@ dary_heap* dary_heap_alloc(size_t degree,
 
     if (!my_heap->indices)
     {
-        heap_node_map_free(p_map);
+        dary_heap_node_map_free(p_map);
         free(my_heap->table);
         free(my_heap);
         return NULL;
@@ -265,7 +340,7 @@ dary_heap* dary_heap_alloc(size_t degree,
     my_heap->capacity = initial_capacity;
     my_heap->size = 0;
     my_heap->degree = degree;
-    
+
     return my_heap;
 }
 
@@ -274,9 +349,6 @@ static size_t get_parent_index(dary_heap* my_heap, size_t child_index)
     return (child_index - 1) / my_heap->degree;
 }
 
-/*******************************************************************************
-* Sifts up the node until the minimum heap property is restored.               *
-*******************************************************************************/
 static void sift_up(dary_heap* my_heap, size_t index)
 {
     size_t parent_index;
@@ -380,9 +452,6 @@ static void sift_down_root(dary_heap* my_heap)
     }
 }
 
-/*******************************************************************************
-* Makes sure that the heap has more room for new elements.                     *
-*******************************************************************************/
 static int ensure_capacity_before_add(dary_heap* my_heap)
 {
     dary_heap_node** new_table;
@@ -410,41 +479,6 @@ static int ensure_capacity_before_add(dary_heap* my_heap)
     my_heap->table = new_table;
     my_heap->capacity = new_capacity;
     return TRUE;
-}
-
-static int dary_heap_node_map_contains_vertex(
-    dary_heap_node_map* map,
-    size_t vertex_id)
-{
-    size_t index;
-    dary_heap_node_map_entry* entry;
-
-    index = vertex_id & map->mask;
-
-    for (entry = map->table[index]; entry; entry = entry->chain_next)
-    {
-        if (vertex_id == entry->vertex_id)
-        {
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-static dary_heap_node* 
-dary_heap_node_alloc(size_t vertex_id,
-                     double priority) {
-    dary_heap_node* node = malloc(sizeof(*node));
-
-    if (!node)
-    {
-        return NULL;
-    }
-
-    node->vertex_id = vertex_id;
-    node->priority = priority;
-    return node;
 }
 
 int dary_heap_add(dary_heap* my_heap, size_t vertex_id, double priority)
@@ -477,40 +511,36 @@ int dary_heap_add(dary_heap* my_heap, size_t vertex_id, double priority)
 
     sift_up(my_heap, my_heap->size);
     my_heap->size++;
-    return true;
+    return RETURN_STATUS_OK;
 }
 
-void dary_heap_decrease_key(dary_heap* my_heap, 
-                            size_t vertex_id,
-                            double priority)
+void dary_heap_decrease_key(dary_heap* my_heap,
+    size_t vertex_id,
+    double priority)
 {
-    dary_heap_node* node;
-
-    if (!dary_heap_node_map_contains_vertex(my_heap->node_map, vertex_id)) {
-        return FALSE;
-    }
+    dary_heap_node* node =
+        dary_heap_node_map_get(
+            my_heap->node_map,
+            vertex_id);
 
     if (priority < node->priority)
     {
         node->priority = priority;
         sift_up(my_heap, node->index);
-        return true;
     }
-
-    return false;
 }
 
 size_t dary_heap_extract_min(dary_heap* my_heap)
 {
-    void* ret;
+    size_t vertex_id;
     dary_heap_node* node = my_heap->table[0];
-    ret = node->vertex_id;
+    vertex_id = node->vertex_id;
     my_heap->size--;
     my_heap->table[0] = my_heap->table[my_heap->size];
-    heap_node_map_remove(my_heap->node_map, ret);
+    heap_node_map_remove(my_heap->node_map, vertex_id);
     sift_down_root(my_heap);
     free(node);
-    return ret;
+    return vertex_id;
 }
 
 size_t dary_heap_min(dary_heap* my_heap)
@@ -521,28 +551,6 @@ size_t dary_heap_min(dary_heap* my_heap)
 size_t dary_heap_size(dary_heap* my_heap)
 {
     return my_heap->size;
-}
-
-static void dary_heap_node_map_clear(dary_heap_node_map* map)
-{
-    dary_heap_node_map_entry* entry;
-    dary_heap_node_map_entry* next_entry;
-    size_t index;
-
-    entry = map->head;
-
-    while (entry)
-    {
-        index = entry->vertex_id & map->mask;
-        next_entry = entry->next;
-        free(entry);
-        entry = next_entry;
-        map->table[index] = NULL;
-    }
-
-    map->size = 0;
-    map->head = NULL;
-    map->tail = NULL;
 }
 
 void dary_heap_clear(dary_heap* my_heap)

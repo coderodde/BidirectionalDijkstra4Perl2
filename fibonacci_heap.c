@@ -262,11 +262,6 @@ fibonacci_heap_node* heap_node_map_get(heap_node_map* map, size_t vertex_id)
     size_t index;
     heap_node_map_entry* p_entry;
 
-    if (!map)
-    {
-        abort();
-    }
-
     index = vertex_id & map->mask;
 
     for (p_entry = map->table[index]; p_entry; p_entry = p_entry->chain_next)
@@ -609,13 +604,13 @@ void fibonacci_heap_decrease_key(fibonacci_heap* heap,
 
     if (!x)
     {
-        return FALSE;
+        return;
     }
 
     if (x->priority <= priority)
     {
         /* Cannot improve priority of the input element. */
-        return FALSE;
+        return;
     }
 
     x->priority = priority;
@@ -629,8 +624,6 @@ void fibonacci_heap_decrease_key(fibonacci_heap* heap,
     if (x->priority < heap->minimum_node->priority) {
         heap->minimum_node = x;
     }
-
-    return TRUE;
 }
 
 static bool try_expand_array(fibonacci_heap* heap, size_t size)

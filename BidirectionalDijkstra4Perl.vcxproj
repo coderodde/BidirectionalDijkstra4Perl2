@@ -145,7 +145,6 @@
   <ItemGroup>
     <ClInclude Include="dary_heap.h" />
     <ClInclude Include="distance_map.h" />
-    <ClInclude Include="fibonacci_heap.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="graph_vertex_map.h" />
     <ClInclude Include="parent_map.h" />
@@ -158,7 +157,6 @@
   <ItemGroup>
     <ClCompile Include="dary_heap.c" />
     <ClCompile Include="distance_map.c" />
-    <ClCompile Include="fibonacci_heap.c" />
     <ClCompile Include="graph.c" />
     <ClCompile Include="graph_vertex_map.c" />
     <ClCompile Include="main.c" />

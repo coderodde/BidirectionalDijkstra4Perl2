@@ -284,6 +284,60 @@ static void dary_heap_node_map_clear(dary_heap_node_map* map)
     map->tail = NULL;
 }
 
+void dary_heap_node_map_remove(dary_heap_node_map* map,
+                               size_t vertex_id)
+{
+    size_t index;
+    dary_heap_node_map_entry* prev_entry;
+    dary_heap_node_map_entry* current_entry;
+
+    index = vertex_id & map->mask;
+    prev_entry = NULL;
+
+    for (current_entry = map->table[index];
+        current_entry;
+        current_entry = current_entry->chain_next)
+    {
+        if (vertex_id, current_entry->vertex_id)
+        {
+            if (prev_entry)
+            {
+                /* Omit the 'p_current_entry' in the collision chain. */
+                prev_entry->chain_next = current_entry->chain_next;
+            }
+            else
+            {
+                map->table[index] = current_entry->chain_next;
+            }
+
+            /* Unlink from the global iteration chain. */
+            if (current_entry->prev)
+            {
+                current_entry->prev->next = current_entry->next;
+            }
+            else
+            {
+                map->head = current_entry->next;
+            }
+
+            if (current_entry->next)
+            {
+                current_entry->next->prev = current_entry->prev;
+            }
+            else
+            {
+                map->tail = current_entry->prev;
+            }
+
+            map->size--;
+            free(current_entry);
+            return;
+        }
+
+        prev_entry = current_entry;
+    }
+}
+
 void dary_heap_node_map_free(dary_heap_node_map* map)
 {
     dary_heap_node_map_clear(map);
@@ -537,7 +591,7 @@ size_t dary_heap_extract_min(dary_heap* my_heap)
     vertex_id = node->vertex_id;
     my_heap->size--;
     my_heap->table[0] = my_heap->table[my_heap->size];
-    heap_node_map_remove(my_heap->node_map, vertex_id);
+    dary_heap_node_map_remove(my_heap->node_map, vertex_id);
     sift_down_root(my_heap);
     free(node);
     return vertex_id;

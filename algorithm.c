@@ -225,22 +225,22 @@ vertex_list* find_shortest_path(Graph * p_graph,
     double tentative_length;
     double weight;
     size_t* p_touch_vertex_id = NULL;
-    int return_status;
+    int rs; /* return status */
     int updated;
     size_t current_vertex_id;
     size_t child_vertex_id;
     size_t parent_vertex_id;
     GraphVertex* p_graph_vertex;
 
-    vertex_list* p_path;
+    vertex_list*    p_path;
     fibonacci_heap* p_open_forward;
     fibonacci_heap* p_open_backward;
-    vertex_set* p_closed_forward;
-    vertex_set* p_closed_backward;
-    distance_map* p_distance_forward;
-    distance_map* p_distance_backward;
-    parent_map* p_parent_forward;
-    parent_map* p_parent_backward;
+    vertex_set*     p_closed_forward;
+    vertex_set*     p_closed_backward;
+    distance_map*   p_distance_forward;
+    distance_map*   p_distance_backward;
+    parent_map*     p_parent_forward;
+    parent_map*     p_parent_backward;
 
     weight_map_iterator* p_weight_map_children_iterator;
     weight_map_iterator* p_weight_map_parents_iterator;
@@ -250,19 +250,19 @@ vertex_list* find_shortest_path(Graph * p_graph,
         return NULL;
     }
 
-    return_status = 0;
+    rs = 0;
 
     if (!hasVertex(p_graph, source_vertex_id)) {
-        return_status |= RETURN_STATUS_NO_SOURCE_VERTEX;
+        rs |= RETURN_STATUS_NO_SOURCE_VERTEX;
     }
 
     if (!hasVertex(p_graph, target_vertex_id)) {
-        return_status |= RETURN_STATUS_NO_TARGET_VERTEX;
+        rs |= RETURN_STATUS_NO_TARGET_VERTEX;
     }
 
-    if (return_status) {
+    if (rs) {
         CLEAN_SEARCH_STATE;
-        TRY_REPORT_RETURN_STATUS(return_status);
+        TRY_REPORT_RETURN_STATUS(rs);
         return NULL;
     }
 
@@ -274,14 +274,14 @@ vertex_list* find_shortest_path(Graph * p_graph,
         return NULL;
     }
 
-    p_open_forward = search_state_.p_open_forward;
-    p_open_backward = search_state_.p_open_backward;
-    p_closed_forward = search_state_.p_closed_forward;
-    p_closed_backward = search_state_.p_closed_backward;
-    p_distance_forward = search_state_.p_distance_forward;
+    p_open_forward      = search_state_.p_open_forward;
+    p_open_backward     = search_state_.p_open_backward;
+    p_closed_forward    = search_state_.p_closed_forward;
+    p_closed_backward   = search_state_.p_closed_backward;
+    p_distance_forward  = search_state_.p_distance_forward;
     p_distance_backward = search_state_.p_distance_backward;
-    p_parent_forward = search_state_.p_parent_forward;
-    p_parent_backward = search_state_.p_parent_backward;
+    p_parent_forward    = search_state_.p_parent_forward;
+    p_parent_backward   = search_state_.p_parent_backward;
 
     /* Initialize the state: */
     if (fibonacci_heap_add(p_open_forward,
@@ -371,7 +371,13 @@ vertex_list* find_shortest_path(Graph * p_graph,
             vertex_set_size(p_closed_backward)) {
 
             current_vertex_id = fibonacci_heap_extract_min(p_open_forward);
-            vertex_set_add(p_closed_forward, current_vertex_id);
+
+            if ((rs = vertex_set_add(p_closed_forward, current_vertex_id)) !=
+                RETURN_STATUS_OK) {
+                CLEAN_SEARCH_STATE;
+                TRY_REPORT_RETURN_STATUS(rs);
+                return NULL;
+            }
 
             p_graph_vertex =
                 graph_vertex_map_get(p_graph->p_nodes,
@@ -380,6 +386,12 @@ vertex_list* find_shortest_path(Graph * p_graph,
             p_weight_map_children_iterator =
                 weight_map_iterator_alloc(
                     p_graph_vertex->p_children);
+
+            if (!p_weight_map_children_iterator) {
+                CLEAN_SEARCH_STATE;
+                TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
+                return NULL;
+            }
 
             while (weight_map_iterator_has_next(
                 p_weight_map_children_iterator)) {
@@ -610,11 +622,11 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
     int rs; /* return status */
     int updated;
 
-    vertex_list*    p_path;
-    dary_heap* p_open;
-    vertex_set*     p_closed;
-    distance_map*   p_distance;
-    parent_map*     p_parent;
+    vertex_list*  p_path;
+    dary_heap*    p_open;
+    vertex_set*   p_closed;
+    distance_map* p_distance;
+    parent_map*   p_parent;
 
     weight_map_iterator* p_weight_map_children_iterator;
 

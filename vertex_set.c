@@ -153,11 +153,6 @@ int vertex_set_add(vertex_set* set, size_t vertex_id)
     int rs; /* return status */
     vertex_set_entry* entry;
 
-    if (!set)
-    {
-        return RETURN_STATUS_NO_MAP;
-    }
-
     hash_value = vertex_id;
     index = hash_value & set->mask;
 

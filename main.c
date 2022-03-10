@@ -119,17 +119,6 @@ Graph* buildGraph() {
     int rs = -1;    
     unsigned random_seed;
     initGraph(p_graph);
-    /*
-    addEdge(p_graph, 0, 1, 1.0);
-    addEdge(p_graph, 1, 2, 2.0);
-    path = find_shortest_path_2(p_graph, 0, 2,NULL);
-    printf("%d %d\n", 
-           vertex_list_size(path), 
-           vertex_list_get(path, 0));
-
-    printf("rs: %d\n", rs);
-    vertex_list_get(path, 0);
-    */
 
     //random_seed = 1646912380;
     random_seed = (unsigned) time(NULL);

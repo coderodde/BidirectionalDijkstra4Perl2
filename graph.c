@@ -49,7 +49,7 @@ void initGraph(Graph* p_graph)
 }
 
 void freeGraph(Graph* p_graph)
-{
+{/*
 	graph_vertex_map_iterator* p_iterator =
 		graph_vertex_map_iterator_alloc(p_graph->p_nodes);
 
@@ -69,7 +69,7 @@ void freeGraph(Graph* p_graph)
 	}
 
 	graph_vertex_map_free(p_graph->p_nodes);
-	p_graph->p_nodes = NULL;
+	p_graph->p_nodes = NULL;*/
 }
 
 GraphVertex* addVertex(Graph* p_graph, size_t vertex_id)

@@ -367,7 +367,7 @@ static void sift_up(dary_heap* my_heap, size_t index)
     {
         p_parent_node = my_heap->table[parent_index];
 
-        if (p_parent_node->priority > p_parent_node->priority) {
+        if (p_parent_node->priority > p_target_node->priority) {
             my_heap->table[index] = p_parent_node;
             p_parent_node->index = index;
             index = parent_index;

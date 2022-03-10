@@ -194,14 +194,44 @@ Graph* buildGraph() {
     return p_graph;
 }
 
+void testSameVertex() {
+    size_t i;
+    vertex_list* path;
+    Graph* graph = allocGraph();
+    int rs = -1;
+
+    addEdge(graph, 0, 1, 1.0);
+    addEdge(graph, 1, 2, 2.0);
+    addEdge(graph, 2, 3, 3.0);
+    addEdge(graph, 3, 0, 4.0);
+
+    path = find_shortest_path(graph, 0, 0, &rs);
+
+    printf("size: %zu\n", vertex_list_size(path));
+
+    graph = allocGraph();
+
+    addEdge(graph, 0, 1, 10.0);
+    addEdge(graph, 0, 2, 2.0);
+    addEdge(graph, 2, 1, 3.0);
+    addEdge(graph, 0, 3, 3.0);
+    addEdge(graph, 3, 1, 5.0);
+
+    path = find_shortest_path(graph, 0, 1, &rs);
+
+    for (i = 0; i < vertex_list_size(path); ++i) {
+        printf("%zu\n", vertex_list_get(path, i));
+    }
+}
+
 int main(int argc, char* argv[])
 {
-    Graph* p_graph = buildGraph();
+    //Graph* p_graph = buildGraph();
 
     // vertex_set* pvs = vertex_set_alloc(10, 1.0f, hash, equals);
 
-    // testRemoveNode();
-
-    freeGraph(p_graph);
+    testRemoveNode();
+    testSameVertex();
+    // freeGraph(p_graph);
     return 0;
 }

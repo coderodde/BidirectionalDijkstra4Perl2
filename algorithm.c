@@ -268,6 +268,26 @@ vertex_list* find_shortest_path(Graph * p_graph,
         return NULL;
     }
 
+    if (source_vertex_id == target_vertex_id) {
+        p_path = vertex_list_alloc(1);
+
+        if (p_path) {
+            TRY_REPORT_RETURN_STATUS(RETURN_STATUS_OK);
+        } else {
+            TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
+            return NULL;
+        }
+
+        if ((rs = vertex_list_push_back(p_path, source_vertex_id)) != RETURN_STATUS_OK) {
+            vertex_list_free(p_path);
+            TRY_REPORT_RETURN_STATUS(rs);
+            return NULL;
+        }
+
+        TRY_REPORT_RETURN_STATUS(RETURN_STATUS_OK);
+        return p_path;
+    }
+
     search_state_init(&search_state_);
 
     if (!search_state_ok(&search_state_)) {

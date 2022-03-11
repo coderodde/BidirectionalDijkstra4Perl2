@@ -13,15 +13,15 @@ typedef struct GraphVertex {
 
 typedef struct Graph {
     /* Maps each node ID to a vertex: */
-    graph_vertex_map* p_nodes;
+    struct graph_vertex_map* p_nodes;
 } Graph;
 
-void initGraphVertex(GraphVertex* p_graph_vertex, size_t id);
+int initGraphVertex(GraphVertex* p_graph_vertex, size_t id);
 void freeGraphVertex(GraphVertex* p_graph_vertex);
 
 Graph* allocGraph();
 
-void initGraph(Graph* p_graph);
+int initGraph(Graph* p_graph);
 void freeGraph(Graph* p_graph);
 
 GraphVertex* addVertex (Graph* p_graph, size_t vertex_id);

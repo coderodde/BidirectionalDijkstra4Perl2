@@ -334,38 +334,27 @@ void graph_vertex_map_free(graph_vertex_map* map)
     free(map);
 }
 
+/******************************************************************************
+Graph vertex map iterator facilities:
+******************************************************************************/
 graph_vertex_map_iterator*
 graph_vertex_map_iterator_alloc(graph_vertex_map* map)
 {
-    graph_vertex_map_iterator* p_ret;
-
-    if (!map)
-    {
-        return NULL;
-    }
-
-    p_ret = malloc(sizeof(*p_ret));
+    graph_vertex_map_iterator* p_ret = malloc(sizeof(*p_ret));
 
     if (!p_ret)
     {
         return NULL;
     }
 
-    p_ret->map = map;
-    p_ret->iterated_count = 0;
     p_ret->next_entry = map->head;
     return p_ret;
 }
 
 int graph_vertex_map_iterator_has_next(
         graph_vertex_map_iterator* iterator)
-{
-    if (!iterator)
-    {
-        return 0;
-    }
-
-    return iterator->map->size - iterator->iterated_count;
+{       
+    return iterator->next_entry;
 }
 
 void graph_vertex_map_iterator_next(
@@ -375,19 +364,13 @@ void graph_vertex_map_iterator_next(
 {
     *vertex_id_pointer = iterator->next_entry->vertex_id;
     *vertex_pointer = iterator->next_entry->vertex;
-
-    iterator->iterated_count++;
     iterator->next_entry = iterator->next_entry->next;
 }
 
-void graph_vertex_map_iterator_free(graph_vertex_map_iterator* iterator)
-{
-    if (!iterator)
-    {
-        return;
-    }
+void graph_vertex_map_iterator_remove(graph_vertex_map_iterator* iterator) {
+    struct GraphVertex* p_graph_vertex = iterator->next_entry->vertex;
+    struct grap_vertex_map_entry* next_entry = iterator->next_entry->next;
 
-    iterator->map = NULL;
-    iterator->next_entry = NULL;
-    free(iterator);
+    freeGraphVertex(iterator->next_entry->vertex);
+    iterator->next_entry = next_entry;
 }

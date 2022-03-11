@@ -13,14 +13,14 @@ Graph* allocGraph()
     return p_graph;
 }
 
-void initGraphVertex(GraphVertex* p_graph_vertex, size_t id)
+int initGraphVertex(GraphVertex* p_graph_vertex, size_t id)
 {
     p_graph_vertex->p_children =
             weight_map_alloc(initial_capacity,
                              load_factor);
 
     if (!p_graph_vertex->p_children) {
-        abort();
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     p_graph_vertex->p_parents =
@@ -29,10 +29,11 @@ void initGraphVertex(GraphVertex* p_graph_vertex, size_t id)
 
     if (!p_graph_vertex->p_parents) {
         weight_map_free(p_graph_vertex->p_children);
-        abort();
+        return RETURN_STATUS_NO_MEMORY;
     }
 
     p_graph_vertex->id = id;
+    return RETURN_STATUS_OK;
 }
 
 void freeGraphVertex(GraphVertex* p_graph_vertex)
@@ -41,25 +42,25 @@ void freeGraphVertex(GraphVertex* p_graph_vertex)
     weight_map_free(p_graph_vertex->p_parents);
 }
 
-void initGraph(Graph* p_graph)
+int initGraph(Graph* p_graph)
 {
     p_graph->p_nodes =
             graph_vertex_map_alloc(initial_capacity,
                                    load_factor);
+
+    return p_graph->p_nodes ? RETURN_STATUS_OK : RETURN_STATUS_NO_MEMORY;
 }
 
 void freeGraph(Graph* p_graph)
-{/*
+{
+    size_t p_vertex_id;
+    GraphVertex* p_graph_vertex;
+
 	graph_vertex_map_iterator* p_iterator =
 		graph_vertex_map_iterator_alloc(p_graph->p_nodes);
 
-	GraphVertex* p_graph_vertex;
-
 	while (graph_vertex_map_iterator_has_next(p_iterator))
 	{
-		size_t* p_vertex_id;
-		GraphVertex* p_graph_vertex;
-
 		graph_vertex_map_iterator_next(
 			p_iterator,
 			&p_vertex_id,
@@ -69,7 +70,7 @@ void freeGraph(Graph* p_graph)
 	}
 
 	graph_vertex_map_free(p_graph->p_nodes);
-	p_graph->p_nodes = NULL;*/
+	p_graph->p_nodes = NULL;
 }
 
 GraphVertex* addVertex(Graph* p_graph, size_t vertex_id)

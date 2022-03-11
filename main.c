@@ -63,7 +63,7 @@ double get_path_length(vertex_list* path,
     return length;
 }
 
-Graph* buildGraph() {
+void buildGraph() {
     Graph* p_graph = allocGraph();
 
     size_t i;

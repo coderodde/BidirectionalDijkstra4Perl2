@@ -1,6 +1,7 @@
 #ifndef COM_GITHUB_CODERODDE_BIDIR_SEARCH_GRAPH_VERTEX_MAP_H
 #define	COM_GITHUB_CODERODDE_BIDIR_SEARCH_GRAPH_VERTEX_MAP_H
 
+#include "graph.h"
 #include <stdlib.h>
 
 typedef struct graph_vertex_map_entry {
@@ -23,9 +24,7 @@ typedef struct graph_vertex_map {
 } graph_vertex_map;
 
 typedef struct graph_vertex_map_iterator {
-    graph_vertex_map*       map;
     graph_vertex_map_entry* next_entry;
-    size_t                  iterated_count;
 } graph_vertex_map_iterator;
 
 graph_vertex_map* graph_vertex_map_alloc(
@@ -45,18 +44,20 @@ void graph_vertex_map_remove(graph_vertex_map* map, size_t vertex_id);
 
 void graph_vertex_map_free(graph_vertex_map* map);
 
-graph_vertex_map_iterator* graph_vertex_map_iterator_alloc
-        (graph_vertex_map* map);
+/******************************************************************************
+Graph vertex map iterator facilities:
+******************************************************************************/
+graph_vertex_map_iterator* 
+graph_vertex_map_iterator_alloc(graph_vertex_map* map);
 
 int graph_vertex_map_iterator_has_next
         (graph_vertex_map_iterator* iterator);
 
-int grapH_vertex_map_iterator_next(
+void graph_vertex_map_iterator_next(
         graph_vertex_map_iterator* iterator,
         size_t* key_pointer,
         struct GraphVertex** value_pointer);
 
-void graph_vertex_map_iterator_free(
-        graph_vertex_map_iterator* iterator);
+void graph_vertex_map_iterator_remove(graph_vertex_map_iterator* iterator);
 
 #endif	/* COM_GITHUB_CODERODDE_BIDIR_SEARCH_DISTANCE_MAP_H */

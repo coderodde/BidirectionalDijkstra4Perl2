@@ -4,7 +4,7 @@
 
 static const size_t MINIMUM_CAPACITY = 16;
 
-static size_t max(size_t a, size_t b) {
+static size_t maxi(size_t a, size_t b) {
     return a < b ? b : a;
 }
 

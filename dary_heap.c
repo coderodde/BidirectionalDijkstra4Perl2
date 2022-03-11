@@ -298,7 +298,7 @@ void dary_heap_node_map_remove(dary_heap_node_map* map,
         current_entry;
         current_entry = current_entry->chain_next)
     {
-        if (vertex_id, current_entry->vertex_id)
+        if (vertex_id == current_entry->vertex_id)
         {
             if (prev_entry)
             {

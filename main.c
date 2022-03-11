@@ -121,6 +121,7 @@ Graph* buildGraph() {
     initGraph(p_graph);
 
     random_seed = (unsigned) time(NULL);
+    //random_seed = 1646925096;
     srand(random_seed);
     printf("Seed = %d\n\n", random_seed);
 
@@ -226,12 +227,10 @@ void testSameVertex() {
 
 int main(int argc, char* argv[])
 {
-    //Graph* p_graph = buildGraph();
+    Graph* p_graph = buildGraph();
 
-    // vertex_set* pvs = vertex_set_alloc(10, 1.0f, hash, equals);
-
-    testRemoveNode();
-    testSameVertex();
+    // testRemoveNode();
+    // testSameVertex();
     // freeGraph(p_graph);
     return 0;
 }

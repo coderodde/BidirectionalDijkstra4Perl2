@@ -1,33 +1,8 @@
 #include "weight_map.h"
 #include "util.h"
-#include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct weight_map_entry {
-    size_t            vertex_id;
-    double            weight;
-    weight_map_entry* chain_next;
-    weight_map_entry* prev;
-    weight_map_entry* next;
-} weight_map_entry;
-
-typedef struct weight_map {
-    weight_map_entry** table;
-    weight_map_entry* head;
-    weight_map_entry* tail;
-    size_t            table_capacity;
-    size_t            size;
-    size_t            max_allowed_size;
-    size_t            mask;
-    float             load_factor;
-} weight_map;
-
-typedef struct weight_map_iterator {
-    weight_map*       map;
-    weight_map_entry* entry;
-} weight_map_iterator;
-
-static weight_map_entry* 
+static weight_map_entry*
 weight_map_entry_alloc(size_t vertex_id,
                        double weight)
 {
@@ -88,8 +63,8 @@ static size_t fix_initial_capacity(size_t initial_capacity)
 }
 
 weight_map* weight_map_alloc(
-    size_t initial_capacity,
-    float load_factor)
+        size_t initial_capacity,
+        float load_factor)
 {
     weight_map* map = malloc(sizeof(*map));
 
@@ -271,8 +246,8 @@ void weight_map_remove(weight_map* map, size_t vertex_id)
     prev_entry = NULL;
 
     for (current_entry = map->table[index];
-        current_entry;
-        current_entry = current_entry->chain_next)
+         current_entry;
+         current_entry = current_entry->chain_next)
     {
         if (current_entry->vertex_id == vertex_id) {
             if (prev_entry)
@@ -342,10 +317,6 @@ void weight_map_clear(weight_map* map)
 
 size_t weight_map_size(weight_map* map)
 {
-    if (!map) {
-        abort();
-    }
-
     return map->size;
 }
 
@@ -389,7 +360,7 @@ int weight_map_iterator_has_next(weight_map_iterator* iterator)
     return iterator && iterator->entry;
 }
 
-int weight_map_iterator_next(weight_map_iterator* iterator)
+void weight_map_iterator_next(weight_map_iterator* iterator)
 {
     iterator->entry = iterator->entry->next;
 }
@@ -414,7 +385,7 @@ void weight_map_iterator_visit(weight_map_iterator* p_iterator,
 }
 
 void weight_map_iterator_remove(
-    weight_map_iterator* p_iterator) {
+        weight_map_iterator* p_iterator) {
     weight_map_entry* p_next_entry = p_iterator->entry->next;
 
     weight_map_remove(p_iterator->map,

@@ -14,50 +14,10 @@ static clock_t milliseconds()
 static const size_t NODES = 100 * 1000;
 static const size_t EDGES = 500 * 1000;
 
-static void testRemoveNode()
-{
-    Graph* graph = allocGraph();
-
-    puts("--- testRemoveNode() begin.");
-
-    addEdge(graph, 1, 2, 1.0);
-    addEdge(graph, 2, 3, 2.0);
-    addEdge(graph, 3, 1, 3.0);
-
-    removeVertex(graph, 3);
-
-    if (hasEdge(graph, 2, 3))
-    {
-        puts("Test 1 failed.");
-        abort();
-    }
-
-    if (hasEdge(graph, 3, 1))
-    {
-        puts("Test 2 failed.");
-        abort();
-    }
-
-    if (!hasEdge(graph, 1, 2))
-    {
-        puts("Test 3 failed.");
-        abort();
-    }
-
-    if (getEdgeWeight(graph, 1, 2) != 1.0)
-    {
-        puts("Test 4 failed.");
-        abort();
-    }
-
-    freeGraph(graph);
-    puts("--- testRemoveNode() passed.");
-}
-
 static int paths_are_equal(vertex_list* path_1,
                            vertex_list* path_2) {
     size_t i;
-    
+
     if (vertex_list_size(path_1) != vertex_list_size(path_2)) {
         return FALSE;
     }
@@ -95,8 +55,8 @@ double get_path_length(vertex_list* path,
         vertex_id_1 = vertex_list_get(path, i);
         vertex_id_2 = vertex_list_get(path, i + 1);
 
-        length += getEdgeWeight(graph, 
-                                vertex_id_1, 
+        length += getEdgeWeight(graph,
+                                vertex_id_1,
                                 vertex_id_2);
     }
 
@@ -109,6 +69,7 @@ Graph* buildGraph() {
     size_t i;
     size_t id1;
     size_t id2;
+    size_t edge;
     double weight;
     size_t source_vertex_id = 0;
     size_t target_vertex_id = 0;
@@ -116,18 +77,17 @@ Graph* buildGraph() {
     clock_t milliseconds_b;
     vertex_list* path;
     vertex_list* path_2;
-    int rs = -1;    
+    int rs = -1;
     unsigned random_seed;
     initGraph(p_graph);
 
     random_seed = (unsigned) time(NULL);
-    //random_seed = 1646925096;
     srand(random_seed);
     printf("Seed = %d\n\n", random_seed);
 
     milliseconds_a = milliseconds();
 
-    for (size_t edge = 0; edge < EDGES; ++edge)
+    for (edge = 0; edge < EDGES; ++edge)
     {
         id1 = intrand() % NODES;
         id2 = intrand() % NODES;
@@ -143,11 +103,11 @@ Graph* buildGraph() {
     }
 
     milliseconds_b = milliseconds();
-    printf("Built the graph in %d milliseconds.\n", 
+    printf("Built the graph in %ld milliseconds.\n",
            (milliseconds_b - milliseconds_a));
 
-    printf("Source node: %zu\n", source_vertex_id);
-    printf("Target node: %zu\n", target_vertex_id);
+    printf("Source node: %d\n", (int) source_vertex_id);
+    printf("Target node: %d\n", (int) target_vertex_id);
 
     puts("--- Bidirectional Dijkstra:");
 
@@ -160,12 +120,12 @@ Graph* buildGraph() {
     milliseconds_b = milliseconds();
 
     for (i = 0; i < vertex_list_size(path); ++i) {
-        printf("%zu\n", vertex_list_get(path, i));
+        printf("%d\n", (int) vertex_list_get(path, i));
     }
 
     printf("Path length: %f\n", get_path_length(path, p_graph));
-    printf("Duration: %d milliseconds.\n",
-        (milliseconds_b - milliseconds_a));
+    printf("Duration: %ld milliseconds.\n",
+           (milliseconds_b - milliseconds_a));
 
     printf("Result status: %d\n\n", rs);
     puts("--- Original Dijkstra:");
@@ -179,12 +139,12 @@ Graph* buildGraph() {
     milliseconds_b = milliseconds();
 
     for (i = 0; i < vertex_list_size(path_2); ++i) {
-        printf("%zu\n", vertex_list_get(path_2, i));
+        printf("%d\n", (int) vertex_list_get(path_2, i));
     }
 
     printf("Path length: %f\n", get_path_length(path_2, p_graph));
-    printf("Duration: %d milliseconds.\n",
-        (milliseconds_b - milliseconds_a));
+    printf("Duration: %ld milliseconds.\n",
+           (milliseconds_b - milliseconds_a));
 
     printf("Result status: %d\n", rs);
 
@@ -192,6 +152,8 @@ Graph* buildGraph() {
 
     vertex_list_free(path);
     vertex_list_free(path_2);
+
+    freeGraph(p_graph);
     return p_graph;
 }
 
@@ -208,7 +170,7 @@ void testSameVertex() {
 
     path = find_shortest_path(graph, 0, 0, &rs);
 
-    printf("size: %zu\n", vertex_list_size(path));
+    printf("size: %d\n", (int) vertex_list_size(path));
 
     graph = allocGraph();
 
@@ -221,16 +183,12 @@ void testSameVertex() {
     path = find_shortest_path(graph, 0, 1, &rs);
 
     for (i = 0; i < vertex_list_size(path); ++i) {
-        printf("%zu\n", vertex_list_get(path, i));
+        printf("%d\n", (int) vertex_list_get(path, i));
     }
 }
 
 int main(int argc, char* argv[])
 {
-    Graph* p_graph = buildGraph();
-
-    // testRemoveNode();
-    // testSameVertex();
-    // freeGraph(p_graph);
+    buildGraph();
     return 0;
 }

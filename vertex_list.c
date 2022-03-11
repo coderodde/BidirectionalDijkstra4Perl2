@@ -1,9 +1,12 @@
 #include "util.h"
 #include "vertex_list.h"
-#include <stdbool.h>
 #include <stdlib.h>
 
 static const size_t MINIMUM_CAPACITY = 16;
+
+static size_t max(size_t a, size_t b) {
+    return a < b ? b : a;
+}
 
 static size_t fix_initial_capacity(size_t initial_capacity)
 {
@@ -101,8 +104,8 @@ int vertex_list_push_back(vertex_list* my_list, size_t vertex_id)
         return RETURN_STATUS_NO_MEMORY;
     }
 
-    my_list->storage[(my_list->head + my_list->size) & my_list->mask] = 
-        vertex_id;
+    my_list->storage[(my_list->head + my_list->size) & my_list->mask] =
+            vertex_id;
 
     my_list->size++;
     return RETURN_STATUS_OK;

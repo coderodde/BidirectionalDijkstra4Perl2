@@ -1,25 +1,5 @@
 #include "vertex_set.h"
-#include <stdbool.h>
 #include <stdlib.h>
-
-typedef struct vertex_set_entry {
-    size_t vertex_id;
-    vertex_set_entry* chain_next;
-    vertex_set_entry* prev;
-    vertex_set_entry* next;
-} vertex_set_entry;
-
-typedef struct vertex_set {
-    vertex_set_entry** table;
-    vertex_set_entry* head;
-    vertex_set_entry* tail;
-    size_t mod_count;
-    size_t table_capacity;
-    size_t size;
-    size_t mask;
-    size_t max_allowed_size;
-    float  load_factor;
-} vertex_set;
 
 static vertex_set_entry* vertex_set_entry_alloc(size_t vertex_id)
 {
@@ -158,7 +138,7 @@ int vertex_set_add(vertex_set* set, size_t vertex_id)
 
     for (entry = set->table[index]; entry; entry = entry->chain_next)
     {
-        if (entry->vertex_id, vertex_id)
+        if (entry->vertex_id == vertex_id)
         {
             return RETURN_STATUS_OK;
         }
@@ -193,27 +173,21 @@ int vertex_set_add(vertex_set* set, size_t vertex_id)
     return RETURN_STATUS_OK;
 }
 
-bool vertex_set_contains(vertex_set* set, size_t vertex_id)
+int vertex_set_contains(vertex_set* set, size_t vertex_id)
 {
     size_t index;
     vertex_set_entry* p_entry;
-
-    if (!set)
-    {
-        return false;
-    }
-
     index = vertex_id & set->mask;
 
     for (p_entry = set->table[index]; p_entry; p_entry = p_entry->chain_next)
     {
         if (vertex_id == p_entry->vertex_id)
         {
-            return true;
+            return TRUE;
         }
     }
 
-    return false;
+    return FALSE;
 }
 
 size_t vertex_set_size(vertex_set* p_set) {
@@ -225,12 +199,6 @@ static void vertex_set_clear(vertex_set* set)
     vertex_set_entry* entry;
     vertex_set_entry* next_entry;
     size_t index;
-
-    if (!set)
-    {
-        return;
-    }
-
     entry = set->head;
 
     while (entry)

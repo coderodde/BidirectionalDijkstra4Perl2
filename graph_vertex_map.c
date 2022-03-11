@@ -1,9 +1,10 @@
 #include "graph_vertex_map.h"
 #include "util.h"
+#include <stdlib.h>
 
 graph_vertex_map_entry*
 graph_vertex_map_entry_alloc(size_t vertex_id,
-                             GraphVertex* vertex)
+                             struct GraphVertex* vertex)
 {
     graph_vertex_map_entry* entry = malloc(sizeof(*entry));
 
@@ -103,7 +104,7 @@ static int ensure_capacity(graph_vertex_map* map)
 
     new_capacity = 2 * map->table_capacity;
     new_mask = new_capacity - 1;
-    new_table = calloc(new_capacity, 
+    new_table = calloc(new_capacity,
                        sizeof(graph_vertex_map_entry*));
 
     if (!new_table)
@@ -131,7 +132,7 @@ static int ensure_capacity(graph_vertex_map* map)
 
 int graph_vertex_map_put(graph_vertex_map* map,
                          size_t vertex_id,
-                         GraphVertex* vertex)
+                         struct GraphVertex* vertex)
 {
     size_t index;
     size_t hash_value;
@@ -210,7 +211,7 @@ int graph_vertex_map_contains_key(graph_vertex_map* map, size_t vertex_id)
     return 0;
 }
 
-GraphVertex* graph_vertex_map_get(graph_vertex_map* map, 
+struct GraphVertex* graph_vertex_map_get(graph_vertex_map* map,
                                   size_t vertex_id)
 {
     size_t index;
@@ -234,8 +235,8 @@ GraphVertex* graph_vertex_map_get(graph_vertex_map* map,
     return NULL;
 }
 
-int graph_vertex_map_remove(graph_vertex_map* map, 
-                            size_t vertex_id)
+void graph_vertex_map_remove(graph_vertex_map* map,
+                             size_t vertex_id)
 {
     size_t index;
     graph_vertex_map_entry* prev_entry;
@@ -243,7 +244,7 @@ int graph_vertex_map_remove(graph_vertex_map* map,
 
     if (!map)
     {
-        return NULL;
+        return;
     }
 
     index = vertex_id & map->mask;
@@ -251,10 +252,10 @@ int graph_vertex_map_remove(graph_vertex_map* map,
     prev_entry = NULL;
 
     for (current_entry = map->table[index];
-        current_entry;
-        current_entry = current_entry->chain_next)
+         current_entry;
+         current_entry = current_entry->chain_next)
     {
-        if (vertex_id, current_entry->vertex_id)
+        if (vertex_id == current_entry->vertex_id)
         {
             if (prev_entry)
             {
@@ -287,13 +288,11 @@ int graph_vertex_map_remove(graph_vertex_map* map,
 
             map->size--;
             free(current_entry);
-            return 1;
+            return;
         }
 
         prev_entry = current_entry;
     }
-
-    return 0;
 }
 
 static void graph_vertex_map_clear(graph_vertex_map* map)
@@ -359,7 +358,7 @@ graph_vertex_map_iterator_alloc(graph_vertex_map* map)
 }
 
 int graph_vertex_map_iterator_has_next(
-    graph_vertex_map_iterator* iterator)
+        graph_vertex_map_iterator* iterator)
 {
     if (!iterator)
     {
@@ -369,22 +368,16 @@ int graph_vertex_map_iterator_has_next(
     return iterator->map->size - iterator->iterated_count;
 }
 
-int graph_vertex_map_iterator_next(
-    graph_vertex_map_iterator* iterator,
-    size_t* vertex_id_pointer,
-    GraphVertex** vertex_pointer)
+void graph_vertex_map_iterator_next(
+        graph_vertex_map_iterator* iterator,
+        size_t* vertex_id_pointer,
+        struct GraphVertex** vertex_pointer)
 {
-    if (!iterator || !iterator->next_entry) {
-        return false;
-    }
-
     *vertex_id_pointer = iterator->next_entry->vertex_id;
     *vertex_pointer = iterator->next_entry->vertex;
 
     iterator->iterated_count++;
     iterator->next_entry = iterator->next_entry->next;
-
-    return true;
 }
 
 void graph_vertex_map_iterator_free(graph_vertex_map_iterator* iterator)

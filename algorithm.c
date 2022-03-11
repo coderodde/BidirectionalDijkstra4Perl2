@@ -34,57 +34,57 @@ typedef struct search_state {
 
 static void search_state_init(search_state* p_state) {
     p_state->p_open_forward =
-        dary_heap_alloc(
-            DARY_HEAP_DEGREE,
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            dary_heap_alloc(
+                    DARY_HEAP_DEGREE,
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_open_backward =
-        dary_heap_alloc(
-            DARY_HEAP_DEGREE,
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            dary_heap_alloc(
+                    DARY_HEAP_DEGREE,
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_closed_forward =
-        vertex_set_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            vertex_set_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_closed_backward =
-        vertex_set_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            vertex_set_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_distance_forward =
-        distance_map_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            distance_map_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_distance_backward =
-        distance_map_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            distance_map_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_parent_forward =
-        parent_map_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            parent_map_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_parent_backward =
-        parent_map_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            parent_map_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 }
 
 static int search_state_ok(search_state* p_search_state) {
     return p_search_state->p_open_forward &&
-        p_search_state->p_open_backward &&
-        p_search_state->p_closed_forward &&
-        p_search_state->p_closed_backward &&
-        p_search_state->p_distance_forward &&
-        p_search_state->p_distance_backward &&
-        p_search_state->p_parent_forward &&
-        p_search_state->p_parent_backward;
+           p_search_state->p_open_backward &&
+           p_search_state->p_closed_forward &&
+           p_search_state->p_closed_backward &&
+           p_search_state->p_distance_forward &&
+           p_search_state->p_distance_backward &&
+           p_search_state->p_parent_forward &&
+           p_search_state->p_parent_backward;
 }
 
 static void search_state_free(search_state* p_search_state) {
@@ -129,32 +129,32 @@ typedef struct search_state_2 {
 
 static void search_state_2_init(search_state_2* p_state) {
     p_state->p_open =
-        dary_heap_alloc(
-            DARY_HEAP_DEGREE,
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            dary_heap_alloc(
+                    DARY_HEAP_DEGREE,
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_closed =
-        vertex_set_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            vertex_set_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_distance =
-        distance_map_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            distance_map_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 
     p_state->p_parent =
-        parent_map_alloc(
-            INITIAL_MAP_CAPACITY,
-            LOAD_FACTOR);
+            parent_map_alloc(
+                    INITIAL_MAP_CAPACITY,
+                    LOAD_FACTOR);
 }
 
 static int search_state_2_ok(search_state_2* p_search_state) {
     return p_search_state->p_open &&
-        p_search_state->p_closed &&
-        p_search_state->p_distance &&
-        p_search_state->p_parent;
+           p_search_state->p_closed &&
+           p_search_state->p_distance &&
+           p_search_state->p_parent;
 }
 
 static void search_state_2_free(search_state_2* p_search_state) {
@@ -182,9 +182,9 @@ static vertex_list* traceback_path(size_t touch_vertex_id,
     vertex_list* path = vertex_list_alloc(100);
     int rs; /* result status */
     size_t vertex_id = touch_vertex_id;
-    size_t previous_vertex_id = 
-        parent_map_get(parent_forward,
-                       touch_vertex_id);
+    size_t previous_vertex_id =
+            parent_map_get(parent_forward,
+                           touch_vertex_id);
 
     do {
         rs = vertex_list_push_front(path, vertex_id);
@@ -307,40 +307,40 @@ vertex_list* find_shortest_path(Graph * p_graph,
 
     /* Initialize the state: */
     if (dary_heap_add(p_open_forward,
-        source_vertex_id,
-        0.0) != RETURN_STATUS_OK) {
+                      source_vertex_id,
+                      0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
     if (dary_heap_add(p_open_backward,
-        target_vertex_id,
-        0.0) != RETURN_STATUS_OK) {
+                      target_vertex_id,
+                      0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
     if (distance_map_put(p_distance_forward,
-        source_vertex_id,
-        0.0) != RETURN_STATUS_OK) {
+                         source_vertex_id,
+                         0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
     if (distance_map_put(p_distance_backward,
-        target_vertex_id,
-        0.0) != RETURN_STATUS_OK) {
+                         target_vertex_id,
+                         0.0) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
         return NULL;
     }
 
     if (parent_map_put(p_parent_forward,
-        source_vertex_id,
-        source_vertex_id) != RETURN_STATUS_OK) {
+                       source_vertex_id,
+                       source_vertex_id) != RETURN_STATUS_OK) {
 
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
@@ -348,8 +348,8 @@ vertex_list* find_shortest_path(Graph * p_graph,
     }
 
     if (parent_map_put(p_parent_backward,
-        target_vertex_id,
-        target_vertex_id) != RETURN_STATUS_OK) {
+                       target_vertex_id,
+                       target_vertex_id) != RETURN_STATUS_OK) {
 
         CLEAN_SEARCH_STATE;
         TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
@@ -361,18 +361,18 @@ vertex_list* find_shortest_path(Graph * p_graph,
 
         if (p_touch_vertex_id) {
             temporary_path_length =
-                distance_map_get(
-                    p_distance_forward,
-                    dary_heap_min(p_open_forward))
-                +
-                distance_map_get(
-                    p_distance_backward,
-                    dary_heap_min(p_open_backward));
+                    distance_map_get(
+                            p_distance_forward,
+                            dary_heap_min(p_open_forward))
+                    +
+                    distance_map_get(
+                            p_distance_backward,
+                            dary_heap_min(p_open_backward));
 
             if (temporary_path_length > best_path_length) {
                 p_path = traceback_path(*p_touch_vertex_id,
-                    p_parent_forward,
-                    p_parent_backward);
+                                        p_parent_forward,
+                                        p_parent_backward);
 
                 if (p_path) {
                     TRY_REPORT_RETURN_STATUS(RETURN_STATUS_OK);
@@ -402,17 +402,17 @@ vertex_list* find_shortest_path(Graph * p_graph,
             }
 
             p_graph_vertex =
-                graph_vertex_map_get(p_graph->p_nodes,
-                    current_vertex_id);
+                    graph_vertex_map_get(p_graph->p_nodes,
+                                         current_vertex_id);
 
             p_weight_map_children_iterator =
-                weight_map_iterator_alloc(
-                    p_graph_vertex->p_children);
+                    weight_map_iterator_alloc(
+                            p_graph_vertex->p_children);
 
             if (!p_weight_map_children_iterator) {
                 CLEAN_SEARCH_STATE;
                 TRY_REPORT_RETURN_STATUS(RETURN_STATUS_NO_MEMORY);
-                
+
                 if (p_touch_vertex_id) {
                     free(p_touch_vertex_id);
                 }
@@ -421,13 +421,13 @@ vertex_list* find_shortest_path(Graph * p_graph,
             }
 
             while (weight_map_iterator_has_next(
-                p_weight_map_children_iterator)) {
+                    p_weight_map_children_iterator)) {
 
                 updated = 0;
 
                 weight_map_iterator_visit(p_weight_map_children_iterator,
-                    &child_vertex_id,
-                    &weight);
+                                          &child_vertex_id,
+                                          &weight);
 
                 weight_map_iterator_next(p_weight_map_children_iterator);
 
@@ -436,16 +436,16 @@ vertex_list* find_shortest_path(Graph * p_graph,
                 }
 
                 tentative_length = distance_map_get(p_distance_forward,
-                    current_vertex_id) +
-                    weight;
+                                                    current_vertex_id) +
+                                   weight;
 
                 if (!distance_map_contains_vertex_id(p_distance_forward,
-                    child_vertex_id)) {
+                                                     child_vertex_id)) {
 
                     if ((rs = dary_heap_add(
-                        p_open_forward,
-                        child_vertex_id,
-                        tentative_length)) != RETURN_STATUS_OK) {
+                            p_open_forward,
+                            child_vertex_id,
+                            tentative_length)) != RETURN_STATUS_OK) {
 
                         CLEAN_SEARCH_STATE;
                         TRY_REPORT_RETURN_STATUS(rs);
@@ -460,12 +460,12 @@ vertex_list* find_shortest_path(Graph * p_graph,
                     updated = 1;
                 }
                 else if (distance_map_get(p_distance_forward, child_vertex_id) >
-                    tentative_length) {
+                         tentative_length) {
 
                     dary_heap_decrease_key(
-                        p_open_forward,
-                        child_vertex_id,
-                        tentative_length);
+                            p_open_forward,
+                            child_vertex_id,
+                            tentative_length);
 
                     updated = 1;
                 }
@@ -473,9 +473,9 @@ vertex_list* find_shortest_path(Graph * p_graph,
                 if (updated) {
 
                     if ((rs = distance_map_put(
-                        p_distance_forward,
-                        child_vertex_id,
-                        tentative_length)) != RETURN_STATUS_OK) {
+                            p_distance_forward,
+                            child_vertex_id,
+                            tentative_length)) != RETURN_STATUS_OK) {
 
                         CLEAN_SEARCH_STATE;
                         TRY_REPORT_RETURN_STATUS(rs);
@@ -485,9 +485,9 @@ vertex_list* find_shortest_path(Graph * p_graph,
                     }
 
                     if ((rs = parent_map_put(
-                        p_parent_forward,
-                        child_vertex_id,
-                        current_vertex_id)) != RETURN_STATUS_OK) {
+                            p_parent_forward,
+                            child_vertex_id,
+                            current_vertex_id)) != RETURN_STATUS_OK) {
 
                         CLEAN_SEARCH_STATE;
                         TRY_REPORT_RETURN_STATUS(rs);
@@ -496,12 +496,12 @@ vertex_list* find_shortest_path(Graph * p_graph,
                     }
 
                     if (vertex_set_contains(p_closed_backward,
-                        child_vertex_id)) {
+                                            child_vertex_id)) {
 
                         temporary_path_length =
-                            tentative_length +
-                            distance_map_get(p_distance_backward,
-                                child_vertex_id);
+                                tentative_length +
+                                distance_map_get(p_distance_backward,
+                                                 child_vertex_id);
 
                         if (best_path_length > temporary_path_length) {
                             best_path_length = temporary_path_length;
@@ -521,41 +521,41 @@ vertex_list* find_shortest_path(Graph * p_graph,
             vertex_set_add(p_closed_backward, current_vertex_id);
 
             p_graph_vertex =
-                graph_vertex_map_get(p_graph->p_nodes,
-                    current_vertex_id);
+                    graph_vertex_map_get(p_graph->p_nodes,
+                                         current_vertex_id);
 
             p_weight_map_parents_iterator =
-                weight_map_iterator_alloc(
-                    p_graph_vertex->p_parents);
+                    weight_map_iterator_alloc(
+                            p_graph_vertex->p_parents);
 
             while (weight_map_iterator_has_next(
-                p_weight_map_parents_iterator)) {
+                    p_weight_map_parents_iterator)) {
 
                 updated = 0;
 
                 weight_map_iterator_visit(
-                    p_weight_map_parents_iterator,
-                    &parent_vertex_id,
-                    &weight);
+                        p_weight_map_parents_iterator,
+                        &parent_vertex_id,
+                        &weight);
 
                 weight_map_iterator_next(p_weight_map_parents_iterator);
 
                 if (vertex_set_contains(p_closed_backward,
-                    parent_vertex_id)) {
+                                        parent_vertex_id)) {
                     continue;
                 }
 
                 tentative_length = distance_map_get(p_distance_backward,
-                    current_vertex_id)
-                    + weight;
+                                                    current_vertex_id)
+                                   + weight;
 
                 if (!distance_map_contains_vertex_id(p_distance_backward,
-                    parent_vertex_id)) {
-                    
+                                                     parent_vertex_id)) {
+
                     if ((rs = dary_heap_add(
-                        p_open_backward,
-                        parent_vertex_id,
-                        tentative_length)) != RETURN_STATUS_OK) {
+                            p_open_backward,
+                            parent_vertex_id,
+                            tentative_length)) != RETURN_STATUS_OK) {
 
                         CLEAN_SEARCH_STATE;
                         TRY_REPORT_RETURN_STATUS(rs);
@@ -566,14 +566,14 @@ vertex_list* find_shortest_path(Graph * p_graph,
                     updated = 1;
                 }
                 else if (distance_map_get(p_distance_backward,
-                    parent_vertex_id)
-                    >
-                    tentative_length) {
+                                          parent_vertex_id)
+                         >
+                         tentative_length) {
 
                     dary_heap_decrease_key(
-                        p_open_backward,
-                        parent_vertex_id,
-                        tentative_length);
+                            p_open_backward,
+                            parent_vertex_id,
+                            tentative_length);
 
                     updated = 1;
                 }
@@ -581,9 +581,9 @@ vertex_list* find_shortest_path(Graph * p_graph,
                 if (updated) {
 
                     if ((rs = distance_map_put(
-                        p_distance_backward,
-                        parent_vertex_id,
-                        tentative_length)) != RETURN_STATUS_OK) {
+                            p_distance_backward,
+                            parent_vertex_id,
+                            tentative_length)) != RETURN_STATUS_OK) {
 
                         CLEAN_SEARCH_STATE;
                         TRY_REPORT_RETURN_STATUS(rs);
@@ -592,9 +592,9 @@ vertex_list* find_shortest_path(Graph * p_graph,
                     }
 
                     if ((rs = parent_map_put(
-                        p_parent_backward,
-                        parent_vertex_id,
-                        current_vertex_id)) != RETURN_STATUS_OK) {
+                            p_parent_backward,
+                            parent_vertex_id,
+                            current_vertex_id)) != RETURN_STATUS_OK) {
 
                         CLEAN_SEARCH_STATE;
                         TRY_REPORT_RETURN_STATUS(rs);
@@ -603,12 +603,12 @@ vertex_list* find_shortest_path(Graph * p_graph,
                     }
 
                     if (vertex_set_contains(p_closed_forward,
-                        parent_vertex_id)) {
+                                            parent_vertex_id)) {
 
                         temporary_path_length =
-                            tentative_length +
-                            distance_map_get(p_distance_forward,
-                                parent_vertex_id);
+                                tentative_length +
+                                distance_map_get(p_distance_forward,
+                                                 parent_vertex_id);
 
                         if (best_path_length > temporary_path_length) {
                             best_path_length = temporary_path_length;
@@ -640,9 +640,9 @@ static vertex_list* traceback_path_2(size_t target_vertex_id,
     vertex_list* path = vertex_list_alloc(100);
     int rs; /* result status */
     size_t vertex_id = target_vertex_id;
-    size_t previous_vertex_id = 
-        parent_map_get(parent,
-                       target_vertex_id);
+    size_t previous_vertex_id =
+            parent_map_get(parent,
+                           target_vertex_id);
 
     do {
         rs = vertex_list_push_front(path, vertex_id);
@@ -655,7 +655,7 @@ static vertex_list* traceback_path_2(size_t target_vertex_id,
         previous_vertex_id = vertex_id;
         vertex_id = parent_map_get(parent, vertex_id);
     } while (vertex_id != previous_vertex_id);
-    
+
     return path;
 }
 
@@ -717,8 +717,8 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
 
     /* Initialize the state: */
     if ((rs = dary_heap_add(p_open,
-                                 source_vertex_id,
-                                 0.0)) != RETURN_STATUS_OK) {
+                            source_vertex_id,
+                            0.0)) != RETURN_STATUS_OK) {
         CLEAN_SEARCH_STATE_2;
         TRY_REPORT_RETURN_STATUS(rs);
         return NULL;
@@ -772,11 +772,11 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
 
         p_graph_vertex =
                 graph_vertex_map_get(p_graph->p_nodes,
-                    current_vertex_id);
+                                     current_vertex_id);
 
         p_weight_map_children_iterator =
-            weight_map_iterator_alloc(
-                p_graph_vertex->p_children);
+                weight_map_iterator_alloc(
+                        p_graph_vertex->p_children);
 
         if (!p_weight_map_children_iterator) {
             CLEAN_SEARCH_STATE_2;
@@ -785,13 +785,13 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
         }
 
         while (weight_map_iterator_has_next(
-            p_weight_map_children_iterator)) {
+                p_weight_map_children_iterator)) {
 
             updated = FALSE;
 
             weight_map_iterator_visit(p_weight_map_children_iterator,
-                    &child_vertex_id,
-                    &weight);
+                                      &child_vertex_id,
+                                      &weight);
 
             weight_map_iterator_next(p_weight_map_children_iterator);
 
@@ -800,18 +800,18 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
             }
 
             tentative_length = distance_map_get(p_distance,
-                    current_vertex_id) +
-                    weight;
+                                                current_vertex_id) +
+                               weight;
 
             if (!distance_map_contains_vertex_id(p_distance,
                                                  child_vertex_id)) {
                 updated = TRUE;
 
                 if ((rs = dary_heap_add(
-                            p_open,
-                            child_vertex_id,
-                            tentative_length)) 
-                        != RETURN_STATUS_OK) {
+                        p_open,
+                        child_vertex_id,
+                        tentative_length))
+                    != RETURN_STATUS_OK) {
 
                     CLEAN_SEARCH_STATE_2;
                     TRY_REPORT_RETURN_STATUS(rs);
@@ -823,16 +823,16 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
                 updated = TRUE;
 
                 dary_heap_decrease_key(
-                    p_open,
-                    child_vertex_id,
-                    tentative_length);
+                        p_open,
+                        child_vertex_id,
+                        tentative_length);
             }
 
             if (updated) {
                 if ((rs = distance_map_put(
-                            p_distance,
-                            child_vertex_id,
-                            tentative_length))
+                        p_distance,
+                        child_vertex_id,
+                        tentative_length))
                     != RETURN_STATUS_OK) {
 
                     CLEAN_SEARCH_STATE_2;
@@ -841,9 +841,9 @@ vertex_list* find_shortest_path_2(Graph* p_graph,
                 }
 
                 if ((rs = parent_map_put(
-                    p_parent,
-                    child_vertex_id,
-                    current_vertex_id))
+                        p_parent,
+                        child_vertex_id,
+                        current_vertex_id))
                     != RETURN_STATUS_OK) {
                     CLEAN_SEARCH_STATE_2;
                     TRY_REPORT_RETURN_STATUS(rs);
